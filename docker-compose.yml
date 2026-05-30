@@ -1,0 +1,18 @@
+services:
+  db:
+    image: postgres:17-alpine
+    env_file:
+      - '.env'
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test: 'pg_isready -U ${POSTGRES_USER}'
+      interval: 5s
+      timeout: 5s
+      retries: 3
+    restart: always
+
+volumes:
+  db_data:

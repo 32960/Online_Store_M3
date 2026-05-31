@@ -1,7 +1,6 @@
 import os
 from pathlib import Path
 
-from django.conf.global_settings import MEDIA_URL
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -22,11 +21,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'api',
-    'orders',
+    # 'api',
+    # 'orders',
     'products',
-    'reviews',
-    'users',
+    # 'reviews',
+    # 'users',
 ]
 
 MIDDLEWARE = [
@@ -90,7 +89,10 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / 'static'
+STATICFILES_DIRS = [
+    BASE_DIR / 'static', # NOT IN PRODUCTION
+]
+# STATIC_ROOT = BASE_DIR / 'static' # IN PRODUCTION (after collectstatic)
 
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'

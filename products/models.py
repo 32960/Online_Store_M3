@@ -34,4 +34,11 @@ class Product(JournalizedModel):
 class Category(JournalizedModel):
     name = models.CharField(max_length=50)
     slug = models.SlugField(unique=True)
-    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, related_name='subcategories')
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='subcategories')
+
+    class Meta:
+        verbose_name = 'Category'
+        verbose_name_plural = 'Categories'
+
+    def __str__(self):
+        return self.name

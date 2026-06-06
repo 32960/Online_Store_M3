@@ -22,7 +22,7 @@ class Product(JournalizedModel):
     currency = models.CharField(max_length=3, choices=CURRENCY, default='USD')
     category = models.ForeignKey('Category', on_delete=models.SET_NULL, null=True, related_name='products')
     is_active = models.BooleanField(default=True)
-    # stock = models.IntegerField()
+    stock = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return self.name

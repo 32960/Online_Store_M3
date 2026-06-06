@@ -17,7 +17,7 @@ class Product(JournalizedModel):
     name = models.CharField(max_length=100)
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    images = models.ImageField(upload_to='product_images/')
+    image = models.ImageField(upload_to='product_images/')
     slug = models.SlugField(unique=True)
     currency = models.CharField(max_length=3, choices=CURRENCY, default='USD')
     category = models.ForeignKey('Category', on_delete=models.SET_NULL, null=True, related_name='products')

@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}
-Product List | Hop & Barley
+Products | {{ site_name }}
 {% endblock %}
 
 {% block content %}
@@ -23,22 +23,12 @@ Product List | Hop & Barley
             <div class="sidebar__section">
                 <h3 class="section-title">Product Type</h3>
                 <div class="checkbox-group">
-                    <label class="checkbox-container">Hops
-                        <input type="checkbox" data-keyword="Hops">
+                    {% for category in categories %}
+                    <label class="checkbox-container">{{ category.name }}
+                        <input type="checkbox" data-keyword="{{ category.name }}">
                         <span class="checkmark"></span>
                     </label>
-                    <label class="checkbox-container">Malts
-                        <input type="checkbox" data-keyword="Malts">
-                        <span class="checkmark"></span>
-                    </label>
-                    <label class="checkbox-container">Yeast
-                        <input type="checkbox" data-keyword="Yeast">
-                        <span class="checkmark"></span>
-                    </label>
-                    <label class="checkbox-container">Adjuncts
-                        <input type="checkbox" data-keyword="Adjuncts">
-                        <span class="checkmark"></span>
-                    </label>
+                    {% endfor %}
                 </div>
             </div>
         </aside>
@@ -63,13 +53,13 @@ Product List | Hop & Barley
 
             <div class="product-grid">
                 {% for product in products %}
-                    <a href="{% url 'products:product-detail' product.id %}" class="product-card-link">
+                    <a href="{% url 'products:product-detail' product.slug %}" class="product-card-link">
                         <div class="product-card">
                             <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-card__image">
                             <div class="product-card__info">
                                 <h4 class="product-card__name">{{ product.name }}</h4>
                                 <p class="product-card__price">{{ product.currency }}{{ product.price }}</p>
-                                <p class="product-card__description">Ideal for IPAs and Pale Ales</p>
+                                <p class="product-card__description">{{ product.description|truncatewords:10 }}...</p>
                             </div>
                         </div>
                     </a>

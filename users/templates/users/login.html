@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign In | Hop & Barley</title>
+  <title>Sign In | {{ site_name }}</title>
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,8 +21,8 @@
 <header>
   <div class="header-container">
     <a href="home.html" class="header__logo">
-      <img src="../static/img/logo.svg" alt="Hop & Barley Logo">
-      <p class="logo-text">Hop & Barley</p>
+      <img src="../static/img/logo.svg" alt="{{ site_name }} Logo">
+      <p class="logo-text">{{ site_name }}</p>
     </a>
     <nav class="header__nav">
       <ul>
@@ -100,7 +100,7 @@
       <li><a href="#">License</a></li>
     </ul>
   </nav>
-  <p class="footer__copyright">© Hop & Barley 2025. All rights reserved</p>
+  <p class="footer__copyright">© {{ site_name }} 2025. All rights reserved</p>
 </footer>
 
 <!-- Link to your main JavaScript file -->

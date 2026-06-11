@@ -23,12 +23,18 @@ class Product(JournalizedModel):
     category = models.ForeignKey('Category', on_delete=models.SET_NULL, null=True, related_name='products')
     is_active = models.BooleanField(default=True)
     stock = models.PositiveIntegerField(default=0)
+    rating = models.DecimalField(max_digits=3, decimal_places=1, default=0.0)
 
     def __str__(self):
         return self.name
 
     def get_absolute_url(self):
         return reverse('products:product-detail', kwargs={'slug':self.slug})
+
+    class Meta:
+        verbose_name = 'Product'
+        verbose_name_plural = 'Products'
+        ordering = ['-created_at']
 
 
 class Category(JournalizedModel):

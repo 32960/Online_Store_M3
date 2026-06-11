@@ -31,14 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Logic for the Main Page (home.html) ---
     const homePageContent = document.querySelector('.main-content-grid');
     if (homePageContent) {
-        // 1. Sort Options Logic
-        const sortButtons = document.querySelectorAll('.sort-options .sort-button');
-        sortButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                sortButtons.forEach(btn => btn.classList.remove('active-sort'));
-                this.classList.add('active-sort');
-            });
-        });
+        // 1. Sort Options Logic (moved to django template)
 
         // 2. Pagination Logic
         const paginationList = document.querySelector('.pagination-list');
@@ -54,44 +47,39 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // 3. Filter Logic (Keywords and Checkboxes)
-        const keywordsList = document.querySelector('.keywords-list');
         const checkboxes = document.querySelectorAll('.checkbox-group input[type="checkbox"]');
+        const filterButton = document.querySelector('#filter-button');
 
-        if (keywordsList && checkboxes.length > 0) {
-
-            checkboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    const keyword = this.dataset.keyword;
-                    if (this.checked) {
-                        if (!document.querySelector(`.keyword-tag[data-keyword="${keyword}"]`)) {
-                            const newTag = document.createElement('span');
-                            newTag.className = 'keyword-tag';
-                            newTag.setAttribute('data-keyword', keyword);
-                            newTag.innerHTML = `${keyword} <i class="fa-solid fa-xmark remove-keyword-icon"></i>`;
-                            keywordsList.appendChild(newTag);
-                        }
-                    } else {
-                        const tagToRemove = document.querySelector(`.keyword-tag[data-keyword="${keyword}"]`);
-                        if (tagToRemove) {
-                            tagToRemove.remove();
-                        }
+        if (checkboxes.length > 0) {
+            filterButton.addEventListener('click', function() {
+                let checked = [];
+                checkboxes.forEach(checkbox => {
+                    if (checkbox.checked) {
+                        checked.push(checkbox.dataset.keyword);
                     }
                 });
-            });
-
-            keywordsList.addEventListener('click', function(event) {
-                const keywordIcon = event.target.closest('.remove-keyword-icon');
-                if (keywordIcon) {
-                    const keywordTag = keywordIcon.closest('.keyword-tag');
-                    const keywordText = keywordTag.dataset.keyword;
-                    const checkbox = document.querySelector(`.checkbox-container input[data-keyword="${keywordText}"]`);
-                    if (checkbox) {
-                        checkbox.checked = false;
-                    }
-                    keywordTag.remove();
-                }
-            });
+                const url = new URLSearchParams(window.location.search);
+                url.set('categories', checked.join(','));
+                window.location.search = url.toString();
+            })
         }
+
+        // 4. Search Logic
+        const searchInput = document.querySelector('.search-input');
+        const searchBtn = document.querySelector('.search-button');
+
+        searchBtn.addEventListener('click', function() {
+            const q = searchInput.value;
+            const url = new URLSearchParams(window.location.search);
+            url.set('q', q);
+            window.location.search = url.toString();
+        });
+
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                searchBtn.click();
+            }
+        });
     }
 
     // --- Logic for Product Detail Pages (product-*.html) ---

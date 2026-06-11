@@ -102,3 +102,5 @@ MEDIA_ROOT = BASE_DIR / 'media'
 AUTH_USER_MODEL = 'users.User'
 
 SITE_NAME = 'Hop & Barley'
+
+PRODUCT_ALLOWED_SORTING = ['price', '-price', '-rating', 'created_at']

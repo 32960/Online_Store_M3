@@ -23,17 +23,45 @@
         <div class="product-description">
           <p>{{ product.description }}</p>
         </div>
+        {% if product.stock > 0 %}
         <div class="cart-controls">
-          <button class="button button--primary add-to-cart-button" id="add-to-cart-btn">
-            <i class="fa-solid fa-cart-shopping"></i>
-            <span>Add to Cart</span>
-          </button>
-          <div class="quantity-counter is-hidden" id="quantity-counter">
-            <button class="quantity-btn" data-action="decrease" aria-label="Decrease quantity"><i class="fa-solid fa-minus"></i></button>
-            <span class="quantity-value">1 in cart</span>
-            <button class="quantity-btn" data-action="increase" aria-label="Increase quantity"><i class="fa-solid fa-plus"></i></button>
+          {% if product.id|stringformat:"i" not in cart %}
+            <form action="{% url 'orders:add_to_cart' %}" method="post">
+              {% csrf_token %}
+              <input type="hidden" name="product_id" value="{{ product.id }}">
+              <input type="hidden" name="quantity" value="1" min="1">
+              <button class="button button--primary add-to-cart-button" id="add-to-cart-btn" type="submit">
+                <i class="fa-solid fa-cart-shopping"></i>
+                <span>Add to Cart</span>
+              </button>
+            </form>
+          {% else %}
+          <div class="quantity-counter" id="quantity-counter">
+            <form action="{% url 'orders:add_to_cart' %}?next={{ request.path }}" method="post">
+              {% csrf_token %}
+              <input type="hidden" name="product_id" value="{{ product.id }}">
+              <input type="hidden" name="quantity" value="{{ quantity|add:-1 }}">
+              <button type="submit" class="quantity-btn" data-action="decrease" aria-label="Decrease quantity">
+                <i class="fa-solid fa-minus"></i>
+              </button>
+            </form>
+
+            <span class="quantity-value">{{ quantity }} in cart</span>
+
+            <form action="{% url 'orders:add_to_cart' %}?next={{ request.path }}" method="post">
+              {% csrf_token %}
+              <input type="hidden" name="product_id" value="{{ product.id }}">
+              <input type="hidden" name="quantity" value="{{ quantity|add:1 }}">
+              <button type="submit" class="quantity-btn" data-action="increase" aria-label="Increase quantity">
+                <i class="fa-solid fa-plus"></i>
+              </button>
+            </form>
           </div>
+          {% endif %}
         </div>
+        {% else %}
+          <p style='color:red'>Out of stock</p>
+        {% endif %}
       </div>
     </section>
 

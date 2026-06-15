@@ -104,3 +104,6 @@ AUTH_USER_MODEL = 'users.User'
 SITE_NAME = 'Hop & Barley'
 
 PRODUCT_ALLOWED_SORTING = ['price', '-price', '-rating', 'created_at']
+
+CART_SESSION_KEY = 'cart'
+# {1: {'price': price1, 'quantity': quantity1}, 2: {'price': price2, 'quantity': quantity2}}

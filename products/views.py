@@ -3,6 +3,7 @@ from django.shortcuts import render
 from django.views.generic import TemplateView, ListView, DetailView
 
 from config.settings import PRODUCT_ALLOWED_SORTING
+from orders.cart import get_cart
 from products.models import Product, Category
 
 
@@ -52,3 +53,10 @@ class ProductDetailView(DetailView):
     model = Product
     template_name = 'products/product-detail.html'
     slug_url_kwarg = 'slug'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        cart = get_cart(self.request)
+        context['cart'] = cart
+        context['quantity'] = cart.get(str(self.object.id), {'quantity': 0})['quantity']
+        return context

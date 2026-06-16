@@ -783,7 +783,7 @@ footer {
 ========================================
 */
 .header__user-actions {
-    display: none;
+    display: flex;
     align-items: center;
     gap: 24px;
 }
@@ -812,7 +812,7 @@ footer {
 ========================================
 */
 
-body:not(.user-logged-in) .header__user-actions {
+body:not(.user-logged-in) .header__auth-buttons ~ .header__user-actions {
     display: none;
 }
 body:not(.user-logged-in) .header__auth-buttons {
@@ -822,10 +822,11 @@ body:not(.user-logged-in) .header__auth-buttons {
 body.user-logged-in .header__auth-buttons {
     display: none;
 }
+/*
 body.user-logged-in .header__user-actions {
     display: flex;
 }
-
+*/
 
 /*
 ========================================

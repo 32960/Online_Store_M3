@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from django.conf.global_settings import AUTH_USER_MODEL
+from django.conf.global_settings import AUTH_USER_MODEL, EMAIL_BACKEND, DEFAULT_FROM_EMAIL
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -107,3 +107,7 @@ PRODUCT_ALLOWED_SORTING = ['price', '-price', '-rating', 'created_at']
 
 CART_SESSION_KEY = 'cart'
 # {1: {'price': price1, 'quantity': quantity1}, 2: {'price': price2, 'quantity': quantity2}}
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'no_replace@hopandbarley.com'
+ADMIN_EMAIL = 'admin@hopandbarley.com'

@@ -6,13 +6,13 @@ Shopping Cart | {{ site_name }}
 {% endblock %}
 
 {% block content %}
+
 <!-- Main Content -->
 <main class="cart-page-wrapper">
   <div class="cart-container">
     <h1 class="cart-title">Shopping Cart</h1>
 
     <div class="cart-items-list" id="cart-items-list">
-      <!-- Cart Item 1 -->
       {% for product, quantity in items %}
       <div class="cart-item" data-price="{{ product.price }}">
         <img src="{{ product.image.url }}" alt="{{ product.name }}" class="cart-item__image">
@@ -47,9 +47,6 @@ Shopping Cart | {{ site_name }}
                   <i class="fa-solid fa-plus"></i>
                 </button>
               </form>
-<!--              <button class="quantity-btn-cart" data-action="decrease"><i class="fa-solid fa-minus"></i></button>-->
-<!--              <span class="quantity-value-cart">{{ quantity }}</span>-->
-<!--              <button class="quantity-btn-cart" data-action="increase"><i class="fa-solid fa-plus"></i></button>-->
             </div>
             <form action="{% url 'orders:remove_from_cart' %}" method="post">
               {% csrf_token %}
@@ -64,40 +61,14 @@ Shopping Cart | {{ site_name }}
       {% empty %}
         <p>Your cart is empty</p>
       {% endfor %}
-
-<!--      &lt;!&ndash; Cart Item 2 &ndash;&gt;-->
-<!--      <div class="cart-item" data-price="3.00">-->
-<!--        <img src="../static/img/products/caramel_malt.jpg" alt="Caramel Malt 60L" class="cart-item__image">-->
-<!--        <div class="cart-item__body">-->
-<!--          <div class="cart-item__details">-->
-<!--            <h2 class="cart-item__name">Caramel Malt 60L</h2>-->
-<!--            <div class="cart-item__price-info">-->
-<!--              <p class="cart-item__price" data-item-total-price>-->
-<!--                $3.00-->
-<!--              </p>-->
-<!--              <span class="cart-item__price-tag">per 1 lb</span>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--          <div class="cart-item__actions">-->
-<!--            <div class="cart-item__quantity-selector">-->
-<!--              <button class="quantity-btn-cart" data-action="decrease"><i class="fa-solid fa-minus"></i></button>-->
-<!--              <span class="quantity-value-cart">1</span>-->
-<!--              <button class="quantity-btn-cart" data-action="increase"><i class="fa-solid fa-plus"></i></button>-->
-<!--            </div>-->
-<!--            <button class="button&#45;&#45;remove" data-action="remove">-->
-<!--              Remove <i class="fa-solid fa-xmark"></i>-->
-<!--            </button>-->
-<!--          </div>-->
-<!--        </div>-->
-<!--      </div>-->
-<!--    </div>-->
+    </div>
 
     <div class="cart-summary">
       <div class="cart-summary__total">
         <p>Total</p>
         <p id="cart-total-price">${{ total }}</p>
       </div>
-      <a href="checkout.html" class="button button--primary button--checkout">Proceed to Checkout</a>
+      <a href="{% url 'orders:checkout' %}" class="button button--primary button--checkout">Proceed to Checkout</a>
     </div>
   </div>
 </main>

@@ -14,14 +14,14 @@ def set_quantity(request: HttpRequest, product: Product, quantity: int =1) -> tu
     cart = get_cart(request)
 
     if product.stock < quantity:
-        return False, 'Not enough stock'
+        return False, f'Not enough stock for "{product.name}".'
     if quantity < 1:
         remove_from_cart(request, product)
-        return True, 'Product removed from cart'
+        return True, f'"{product.name}" removed from cart.'
     cart[str(product.id)] = {'price': str(product.price), 'quantity': quantity,}
 
     request.session.modified = True
-    return True, 'Product added to cart'
+    return True, f'"{product.name}" added to cart.'
 
 
 def remove_from_cart(request: HttpRequest, product: Product) -> None:

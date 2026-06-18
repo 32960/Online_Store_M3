@@ -49,6 +49,46 @@ p, h1, h2, h3, h4, h5, h6 {
     padding: 0 64px;
 }
 
+/*
+========================================
+    Django Messages styles
+========================================
+*/
+
+.messages {
+    max-width: 1312px;
+    margin: 16px auto 0;
+    padding: 0 64px;
+}
+
+.message {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.message--success {
+    background-color: var(--background-green);
+    color: var(--green);
+}
+
+.message--error {
+    background-color: #ffe6e0;
+    color: #c41e1e;
+}
+
+.message--warning {
+    background-color: #fff0d4;
+    color: #9a6700;
+}
+
+.message--info {
+    background-color: #e6f0ff;
+    color: #1558b0;
+}
+
 /* Header styles */
 header {
     width: 100%;

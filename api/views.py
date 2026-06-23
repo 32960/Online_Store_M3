@@ -1,9 +1,12 @@
 from decimal import Decimal
-from django.db.models import Avg
+from typing import Any
+
+from django.db.models import Avg, QuerySet
 from django.shortcuts import get_object_or_404
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from orders.cart import (
@@ -14,6 +17,8 @@ from orders.cart import (
     set_quantity,
 )
 from reviews.models import Review
+
+from django.db import transaction
 
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -44,11 +49,12 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     ordering = ['-created_at']
     permission_classes = [permissions.AllowAny]
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[Product]:
+        """Return active products with related category."""
         queryset = super().get_queryset()
-        return queryset.filter(is_active=True)
+        return queryset.filter(is_active=True).select_related('category')
 
-    def get_serializer_class(self):
+    def get_serializer_class(self) -> type[ProductListSerializer | ProductDetailSerializer]:
         if self.action == 'list':
             return ProductListSerializer
         return ProductDetailSerializer
@@ -71,19 +77,30 @@ class OrderViewSet(viewsets.ModelViewSet):
     authentication_classes = [JWTAuthentication, SessionAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[Order]:
+        """Return orders with prefetched items and products."""
         user = self.request.user
-        if not user.is_authenticated:
-            return Order.objects.none()
+        # if not user.is_authenticated:
+        #     return Order.objects.none()
+        queryset = Order.objects.prefetch_related('items__product')
         if user.is_staff:
-            return Order.objects.all()
-        return Order.objects.filter(user=user)
+            return queryset
+        return queryset.filter(user=user)
 
-    def perform_destroy(self, instance):
+    def perform_destroy(self, instance: Order) -> None:
+        """Cancel order and restore product stock."""
         if instance.status in {'shipped', 'delivered', 'cancelled'}:
             raise ValidationError('This order cannot be cancelled.')
-        instance.status = 'cancelled'
-        instance.save(update_fields=['status'])
+
+        with transaction.atomic():
+            # Restore stock for each item
+            for item in instance.items.select_related('product'):
+                product = item.product
+                product.stock += item.quantity
+                product.save(update_fields=['stock'])
+
+            instance.status = 'cancelled'
+            instance.save(update_fields=['status', 'updated_at'])
 
 
 class RegisterView(CreateAPIView):
@@ -98,10 +115,10 @@ class CartAPIView(APIView):
     authentication_classes = [JWTAuthentication, SessionAuthentication]
     permission_classes = [permissions.AllowAny]
 
-    def get(self, request):
+    def get(self, request: Request) -> Response:
         return Response(self.get_cart_payload(request))
 
-    def post(self, request):
+    def post(self, request: Request) -> Response:
         serializer = CartItemSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         product = serializer.validated_data['product']
@@ -114,7 +131,7 @@ class CartAPIView(APIView):
             status=status.HTTP_201_CREATED,
         )
 
-    def patch(self, request):
+    def patch(self, request: Request) -> Response:
         serializer = CartItemSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         product = serializer.validated_data['product']
@@ -124,7 +141,7 @@ class CartAPIView(APIView):
             raise ValidationError(message)
         return Response(self.get_cart_payload(request))
 
-    def delete(self, request):
+    def delete(self, request: Request) -> Response:
         product_id = (
             request.data.get('product')
             or request.query_params.get('product')
@@ -137,7 +154,7 @@ class CartAPIView(APIView):
         return Response(self.get_cart_payload(request))
 
     @staticmethod
-    def get_cart_payload(request):
+    def get_cart_payload(request: Request) -> dict[str, Any]:
         items = []
         for product, quantity in get_cart_items(request):
             subtotal = product.price * quantity
@@ -159,38 +176,46 @@ class ProductReviewView(CreateAPIView):
     serializer_class = ReviewSerializer
     authentication_classes = [JWTAuthentication, SessionAuthentication]
 
-    def get_permissions(self):
+    def get_permissions(self) -> list[permissions.BasePermission]:
         if self.request.method == 'GET':
             return [permissions.AllowAny()]
         return [permissions.IsAuthenticated()]
 
-    def get(self, request, product_id):
+    def get(self, request: Request, product_id: int) -> Response:
         queryset = Review.objects.filter(
             product_id=product_id,
         ).select_related('user')
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    def perform_create(self, serializer):
-        product = get_object_or_404(
-            Product,
-            id=self.kwargs['product_id'],
-            is_active=True,
-        )
-        if not self.user_bought_product(self.request.user, product):
-            raise PermissionDenied(
-                'Only customers who bought this product can review it.',
+    def perform_create(self, serializer: ReviewSerializer) -> None:
+        """Create a review, ensuring user hasn't reviewed this product before."""
+        with transaction.atomic():
+            product = Product.objects.select_for_update().get(
+                id=self.kwargs['product_id'],
+                is_active=True,
             )
 
-        serializer.save(product=product, user=self.request.user)
-        rating = Review.objects.filter(product=product).aggregate(
-            value=Avg('rating'),
-        )['value']
-        product.rating = Decimal(str(rating or 0)).quantize(Decimal('0.1'))
-        product.save(update_fields=['rating'])
+            # Check for duplicate review
+            if Review.objects.filter(product=product, user=self.request.user).exists():
+                raise ValidationError('You have already reviewed this product.')
+
+            if not self.user_bought_product(self.request.user, product):
+                raise PermissionDenied(
+                    'Only customers who bought this product can review it.',
+                )
+
+            serializer.save(product=product, user=self.request.user)
+
+            # Update product rating
+            rating = Review.objects.filter(product=product).aggregate(
+                value=Avg('rating'),
+            )['value']
+            product.rating = Decimal(str(rating or 0)).quantize(Decimal('0.1'))
+            product.save(update_fields=['rating'])
 
     @staticmethod
-    def user_bought_product(user, product):
+    def user_bought_product(user: Any, product: Product) -> bool:
         return OrderItem.objects.filter(
             order__user=user,
             order__status__in=['paid', 'shipped', 'delivered'],

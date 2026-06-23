@@ -1,9 +1,10 @@
+from typing import Any
+
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from orders.models import OrderItem, Order
 from products.models import Product, Category
-
 
 from django.db import transaction
 from reviews.models import Review
@@ -14,6 +15,7 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'slug', 'parent', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
+
 class ProductListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
@@ -23,10 +25,6 @@ class ProductListSerializer(serializers.ModelSerializer):
             'id', 'is_active', 'rating'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'slug', 'is_active']
-
-    def validate(self, attrs):
-        attrs['slug'] = attrs['name'].lower().replace(' ', '-')
-        return attrs
 
 
 class ProductDetailSerializer(serializers.ModelSerializer):
@@ -60,7 +58,7 @@ class OrderSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'user', 'total_price', 'created_at', 'updated_at']
 
-    def validate(self, attrs):
+    def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
         request = self.context.get('request')
         items = attrs.get('items')
 
@@ -102,8 +100,10 @@ class OrderSerializer(serializers.ModelSerializer):
                 quantities_by_product[product.id] = (
                     quantities_by_product.get(product.id, 0) + item['quantity']
                 )
+            product_ids = list(quantities_by_product.keys())
+            products = Product.objects.in_bulk(product_ids)
             for product_id, quantity in quantities_by_product.items():
-                product = Product.objects.get(id=product_id)
+                product = products[product_id]
                 if product.stock < quantity:
                     raise serializers.ValidationError({
                         'items': (
@@ -113,7 +113,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
         return attrs
 
-    def create(self, validated_data):
+    def create(self, validated_data: dict[str, Any]) -> Order:
         request = self.context['request']
         items_data = validated_data.pop('items')
 
@@ -153,7 +153,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
         extra_kwargs = {'password': {'write_only': True}}
 
-    def create(self, validated_data):
+    def create(self, validated_data: dict[str, Any]) -> Any:
         return get_user_model().objects.create_user(**validated_data)
 
 
@@ -163,7 +163,7 @@ class CartItemSerializer(serializers.Serializer):
     )
     quantity = serializers.IntegerField(min_value=1)
 
-    def validate(self, attrs):
+    def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
         product = attrs['product']
         quantity = attrs['quantity']
         if product.stock < quantity:

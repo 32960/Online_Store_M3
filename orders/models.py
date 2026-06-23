@@ -40,6 +40,7 @@ class Order(JournalizedModel):
         return f'Order {self.id} by {self.user}'
 
     def update_total_price(self) -> None:
+        """Recalculate and persist the order total price."""
         total_price = self.items.aggregate(
             total_price=Sum(
                 ExpressionWrapper(
@@ -52,7 +53,7 @@ class Order(JournalizedModel):
             ),
         )['total_price'] or Decimal('0.00')
         self.total_price = total_price
-        Order.objects.filter(pk=self.pk).update(total_price=total_price)
+        self.save(update_fields=['total_price', 'updated_at'])
 
 
 class OrderItem(models.Model):

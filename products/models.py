@@ -11,8 +11,8 @@ class JournalizedModel(models.Model):
 class Product(JournalizedModel):
     CURRENCY = [
         ('$', 'USD'),
-        ('$', 'EUR'),
-        ('$', 'RUB'),
+        ('€', 'EUR'),
+        ('₽', 'RUB'),
     ]
     name = models.CharField(max_length=100)
     description = models.TextField()

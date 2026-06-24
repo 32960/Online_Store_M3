@@ -14,7 +14,7 @@ from orders.cart import (
     get_cart_items,
     get_cart_total,
     remove_from_cart,
-    set_quantity,
+    set_quantity, get_cart,
 )
 from reviews.models import Review
 
@@ -153,17 +153,29 @@ class CartAPIView(APIView):
 
     @staticmethod
     def get_cart_payload(request: Request) -> dict[str, Any]:
+        """Return cart payload with price change warnings."""
+        cart = get_cart(request)
         items = []
+
         for product, quantity in get_cart_items(request):
-            subtotal = product.price * quantity
+            actual_price = product.price
+            subtotal = actual_price * quantity
+
+            session_price_str = cart.get(str(product.id), {}).get('price')
+            session_price = Decimal(session_price_str) if session_price_str else actual_price
+            price_changed = session_price != actual_price
+
             items.append({
                 'product': product.id,
                 'name': product.name,
-                'price': str(product.price),
+                'price': str(actual_price),
                 'quantity': quantity,
                 'subtotal': str(subtotal.quantize(Decimal('0.01'))),
                 'stock': product.stock,
+                'price_changed': price_changed,
+                'old_price': str(session_price) if price_changed else None,
             })
+
         return {
             'items': items,
             'total': str(get_cart_total(request)),
@@ -204,13 +216,6 @@ class ProductReviewView(CreateAPIView):
                 )
 
             serializer.save(product=product, user=self.request.user)
-
-            # Update product rating
-            rating = Review.objects.filter(product=product).aggregate(
-                value=Avg('rating'),
-            )['value']
-            product.rating = Decimal(str(rating or 0)).quantize(Decimal('0.1'))
-            product.save(update_fields=['rating'])
 
     @staticmethod
     def user_bought_product(user: Any, product: Product) -> bool:

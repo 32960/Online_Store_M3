@@ -10,7 +10,7 @@ def get_cart(request: HttpRequest) -> dict[str, dict[str, str | int]]:
     return request.session.setdefault(CART_SESSION_KEY, {})
 
 
-def set_quantity(request: HttpRequest, product: Product, quantity: int =1) -> tuple[bool, str]:
+def set_quantity(request: HttpRequest, product: Product, quantity: int = 1) -> tuple[bool, str]:
     cart = get_cart(request)
 
     if product.stock < quantity:
@@ -37,19 +37,17 @@ def clear_cart(request: HttpRequest) -> None:
     request.session.modified = True
 
 
-def get_cart_total(request: HttpRequest) -> None:
-    cart = get_cart(request)
-    total = sum(
-        (
-            Decimal(str(item['price'])) * int(item['quantity'])
-            for item in cart.values()
-        ),
-        Decimal('0.00'),
-    )
+def get_cart_total(request: HttpRequest) -> Decimal:
+    """Calculate cart total using actual prices from database."""
+    total = Decimal('0.00')
+    for product, quantity in get_cart_items(request):
+        total += product.price * quantity
     return total.quantize(Decimal('0.01'))
 
 
 def get_cart_items(request: HttpRequest) -> list[tuple[Product, int]]:
     cart = get_cart(request)
-    products = Product.objects.filter(id__in=cart.keys())
+    if not cart:
+        return []
+    products = Product.objects.filter(id__in=cart.keys()).select_related('category')
     return [(p, int(cart[str(p.id)]['quantity'])) for p in products]

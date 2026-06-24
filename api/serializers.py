@@ -62,6 +62,22 @@ class OrderSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         items = attrs.get('items')
 
+        if self.instance is not None:
+            current_status = self.instance.status
+            locked_fields = {'shipping_address', 'city', 'payment_method'}
+            if current_status in {'shipped', 'delivered', 'cancelled'}:
+                for field in locked_fields:
+                    if field in attrs and attrs[field] != getattr(self.instance, field):
+                        raise serializers.ValidationError({
+                            field: f'Cannot change {field} after order is {current_status}.'
+                        })
+
+            if current_status in {'paid', 'shipped', 'delivered'}:
+                if 'payment_method' in attrs and attrs['payment_method'] != self.instance.payment_method:
+                    raise serializers.ValidationError({
+                        'payment_method': 'Cannot change payment method after payment.'
+                    })
+
         if self.instance is None and not items:
             raise serializers.ValidationError({
                 'items': 'At least one order item is required.',

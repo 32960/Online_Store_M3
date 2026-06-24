@@ -80,8 +80,6 @@ class OrderViewSet(viewsets.ModelViewSet):
     def get_queryset(self) -> QuerySet[Order]:
         """Return orders with prefetched items and products."""
         user = self.request.user
-        # if not user.is_authenticated:
-        #     return Order.objects.none()
         queryset = Order.objects.prefetch_related('items__product')
         if user.is_staff:
             return queryset

@@ -3,10 +3,11 @@ from django.urls import path, include
 from django.conf.urls.static import static
 
 from config import settings
-from products.views import ProductListView
+from products.views import ProductListView, AdminDashboardView
 
 urlpatterns = [
     path('', ProductListView.as_view()),
+    path('admin/dashboard/', AdminDashboardView.as_view(), name='admin-dashboard'),
     path('admin/', admin.site.urls),
     path('api/', include('api.urls', namespace='api')),
     path('orders/', include('orders.urls', namespace='orders')),

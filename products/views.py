@@ -1,10 +1,71 @@
-from django.db.models import Q
-from django.shortcuts import render
+from decimal import Decimal
+
+from django.db.models import Q, F, Sum, Count, ExpressionWrapper, DecimalField
 from django.views.generic import TemplateView, ListView, DetailView
 
 from config.settings import PRODUCT_ALLOWED_SORTING
 from orders.cart import get_cart
 from products.models import Product, Category
+
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth import get_user_model
+from django.utils.decorators import method_decorator
+from orders.models import Order, OrderItem
+
+@method_decorator(staff_member_required, name='dispatch')
+class AdminDashboardView(TemplateView):
+    template_name = 'products/admin/dashboard.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Total revenue (paid orders only)
+        total_revenue = OrderItem.objects.filter(
+            order__status__in=['paid', 'shipped', 'delivered']
+        ).aggregate(
+            total=Sum(
+                ExpressionWrapper(
+                    F('price') * F('quantity'),
+                    output_field=DecimalField(max_digits=12, decimal_places=2)
+                )
+            )
+        )['total'] or Decimal('0.00')
+
+
+        # Number of orders by status
+        orders_count = Order.objects.values('status').annotate(
+            count=Count('id')
+        ).order_by('status')
+
+        total_orders = Order.objects.count()
+        pending_orders = Order.objects.filter(status='pending').count()
+
+        # Top 5 products by revenue
+        top_products = OrderItem.objects.filter(
+            order__status__in=['paid', 'shipped', 'delivered']
+        ).values(
+            'product__name'
+        ).annotate(
+            revenue=Sum(
+                ExpressionWrapper(
+                    F('price') * F('quantity'),
+                    output_field=DecimalField(max_digits=12, decimal_places=2)
+                )
+            ),
+            quantity_sold=Sum('quantity')
+        ).order_by('-revenue')[:5]
+
+        User = get_user_model()
+        total_users = User.objects.count()
+
+        context['total_revenue'] = total_revenue
+        context['orders_count'] = orders_count
+        context['total_orders'] = total_orders
+        context['pending_orders'] = pending_orders
+        context['top_products'] = top_products
+        context['total_users'] = total_users
+
+        return context
 
 
 class GuidesView(TemplateView):

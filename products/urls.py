@@ -10,4 +10,3 @@ urlpatterns = [
     path('guides/', GuidesView.as_view(), name= 'guides'),
     path('<slug:slug>/', ProductDetailView.as_view(), name= 'product-detail'),
 ]
-

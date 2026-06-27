@@ -214,4 +214,56 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     }
+
+    // --- Logic for Reviews Page ---
+    const starRating = document.getElementById('star-rating');
+
+    if (!starRating) return;
+
+    const stars = starRating.querySelectorAll('.star-label');
+    const radios = starRating.querySelectorAll('.star-radio');
+
+    let currentRating = 0;
+
+    function updateStars(rating) {
+        stars.forEach((star, index) => {
+            const icon = star.querySelector('i');
+            if (index < rating) {
+                icon.className = 'fa-solid fa-star';
+                icon.style.color = '#fbbf24';
+            } else {
+                icon.className = 'fa-regular fa-star';
+                icon.style.color = '#d1d5db';
+            }
+        });
+    }
+
+    stars.forEach(star => {
+        star.addEventListener('click', function(e) {
+            e.preventDefault();
+            const rating = parseInt(this.dataset.rating);
+            const radio = document.getElementById(`star-${rating}`);
+            radio.checked = true;
+            currentRating = rating;
+            updateStars(rating);
+        });
+
+        star.addEventListener('mouseenter', function() {
+            const rating = parseInt(this.dataset.rating);
+            updateStars(rating);
+        });
+
+        star.addEventListener('mouseleave', function() {
+            updateStars(currentRating);
+        });
+    });
+
+    const checkedRadio = document.querySelector('.star-radio:checked');
+    if (checkedRadio) {
+        currentRating = parseInt(checkedRadio.value);
+        updateStars(currentRating);
+    } else {
+        currentRating = 0;
+        updateStars(0);
+    }
 });

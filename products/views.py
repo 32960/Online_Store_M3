@@ -11,6 +11,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import get_user_model
 from django.utils.decorators import method_decorator
 from orders.models import Order, OrderItem
+from reviews.services import user_bought_product, user_already_reviewed
 
 @method_decorator(staff_member_required, name='dispatch')
 class AdminDashboardView(TemplateView):
@@ -120,4 +121,17 @@ class ProductDetailView(DetailView):
         cart = get_cart(self.request)
         context['cart'] = cart
         context['quantity'] = cart.get(str(self.object.id), {'quantity': 0})['quantity']
+        context['recent_reviews'] = self.object.reviews.select_related('user').order_by('-created_at')[:3]
+
+        if self.request.user.is_authenticated:
+            user_bought = user_bought_product(self.request.user, self.object)
+            user_reviewed = user_already_reviewed(self.request.user, self.object)
+            context['can_review'] = user_bought and not user_reviewed
+            context['user_reviewed'] = user_reviewed
+            context['user_bought'] = user_bought
+        else:
+            context['can_review'] = False
+            context['user_reviewed'] = False
+            context['user_bought'] = False
+
         return context

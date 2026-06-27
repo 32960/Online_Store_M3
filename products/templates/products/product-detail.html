@@ -14,7 +14,23 @@
       </div>
       <div class="product-info-column">
         <div class="product-title-price">
-          <h1 class="product-name">{{ product.name }}</h1>
+          <div class="product-detail__title-wrapper">
+            <h1 class="product-name">{{ product.name }}</h1>
+            <div class="product-rating">
+              <div class="product-rating__stars">
+                {% for i in "12345"|make_list %}
+                  {% if forloop.counter <= product.rating %}
+                    <i class="fa-solid fa-star" style="color: #fbbf24;"></i>
+                  {% else %}
+                    <i class="fa-regular fa-star" style="color: #d1d5db;"></i>
+                  {% endif %}
+                {% endfor %}
+              </div>
+              <span class="product-rating__value">{{ product.rating }}</span>
+              <span class="product-rating__count">({{ product.reviews.count }} reviews)</span>
+            </div>
+          </div>
+
           <div class="price-section">
             <span class="price-tag">per 1 lb</span>
             <p class="product-price">{{ product.currency }}{{ product.price }}</p>
@@ -24,19 +40,19 @@
           <p>{{ product.description }}</p>
         </div>
         {% if product.stock > 0 %}
-        <div class="cart-controls">
-          {% if product.id|stringformat:"i" not in cart %}
-            <form action="{% url 'orders:add_to_cart' %}" method="post">
-              {% csrf_token %}
-              <input type="hidden" name="product_id" value="{{ product.id }}">
-              <input type="hidden" name="quantity" value="1" min="1">
-              <button class="button button--primary add-to-cart-button" id="add-to-cart-btn" type="submit">
-                <i class="fa-solid fa-cart-shopping"></i>
-                <span>Add to Cart</span>
-              </button>
-            </form>
-          {% else %}
-          <div class="quantity-counter" id="quantity-counter">
+          <div class="cart-controls">
+            {% if product.id|stringformat:"i" not in cart %}
+              <form action="{% url 'orders:add_to_cart' %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="product_id" value="{{ product.id }}">
+                <input type="hidden" name="quantity" value="1" min="1">
+                <button class="button button--primary add-to-cart-button" id="add-to-cart-btn" type="submit">
+                  <i class="fa-solid fa-cart-shopping"></i>
+                  <span>Add to Cart</span>
+                </button>
+              </form>
+            {% else %}
+              <div class="quantity-counter" id="quantity-counter">
             <form action="{% url 'orders:add_to_cart' %}?next={{ request.path }}" method="post">
               {% csrf_token %}
               <input type="hidden" name="product_id" value="{{ product.id }}">
@@ -57,10 +73,28 @@
               </button>
             </form>
           </div>
-          {% endif %}
+            {% endif %}
         </div>
         {% else %}
           <p style='color:red'>Out of stock</p>
+        {% endif %}
+
+        {% if user.is_authenticated %}
+          {% if can_review %}
+          <a href="{% url 'reviews:review-create' product.slug %}" class="button button--secondary review-action-button">
+            <i class="fa-solid fa-pen"></i>
+            <span>Write a Review</span>
+          </a>
+          {% elif user_reviewed %}
+            <p class="review-notice">You have already reviewed this product.</p>
+          {% elif not user_bought %}
+            <p class="review-notice">You can review this product after purchase.</p>
+          {% endif %}
+        {% else %}
+          <a href="{% url 'users:login' %}?next={{ request.path }}" class="button button--secondary review-action-button">
+            <i class="fa-solid fa-right-to-bracket"></i>
+            <span>Sign in to Review</span>
+          </a>
         {% endif %}
       </div>
     </section>
@@ -91,48 +125,26 @@
     <section class="reviews-section">
       <h2 class="reviews-title">Latest reviews</h2>
       <div class="reviews-grid">
-        <!-- Review Card 1 -->
+        {% for review in recent_reviews %}
         <div class="review-card">
-          <div class="review-rating">
-            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-          </div>
-          <div class="review-body">
-            <h4 class="review-heading">The Perfect Sweet Spot</h4>
-            <p class="review-text">60L is my favorite caramel malt. It's not too light and not too dark. It provides the perfect balance of sweetness and caramel flavor for my Amber Ales. The color comes out just gorgeous.</p>
-          </div>
-          <div class="review-author">
-            <img src="../static/img/avatars/avatar1.svg" alt="User avatar" class="author-avatar">
-            <span class="author-name">AmberAleFanatic</span>
-          </div>
+            <div class="review-rating">
+                {% for i in "12345"|make_list %}
+                    {% if forloop.counter <= review.rating %}
+                        <i class="fa-solid fa-star" style="color: #fbbf24;"></i>
+                    {% else %}
+                        <i class="fa-regular fa-star" style="color: #d1d5db;"></i>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <p class="review-text">{{ review.comment }}</p>
+            <div class="review-meta">
+                <span class="author-name">{{ review.user.username }}</span>
+                <span class="review-date">{{ review.created_at|date:"M d, Y" }}</span>
+            </div>
         </div>
-        <!-- Review Card 2 -->
-        <div class="review-card">
-          <div class="review-rating">
-            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-          </div>
-          <div class="review-body">
-            <h4 class="review-heading">Never Brew Without It</h4>
-            <p class="review-text">I add a bit of C60 to almost every recipe. It improves head retention and gives the beer a finished quality that's hard to achieve otherwise. Works great in IPAs to balance the bitterness.</p>
-          </div>
-          <div class="review-author">
-            <img src="../static/img/avatars/avatar2.svg" alt="User avatar" class="author-avatar">
-            <span class="author-name">BrewMore</span>
-          </div>
-        </div>
-        <!-- Review Card 3 -->
-        <div class="review-card">
-          <div class="review-rating">
-            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-          </div>
-          <div class="review-body">
-            <h4 class="review-heading">Consistent and Reliable</h4>
-            <p class="review-text">The quality of this malt is always top-notch. Consistent color, wonderful aroma when crushed. If a recipe calls for Crystal 60, this is the one I always reach for. Recommended.</p>
-          </div>
-          <div class="review-author">
-            <img src="../static/img/avatars/avatar3.svg" alt="User avatar" class="author-avatar">
-            <span class="author-name">ConsistentBrewer</span>
-          </div>
-        </div>
+        {% empty %}
+        <p class="no-reviews">No reviews yet. Be the first to review!</p>
+        {% endfor %}
       </div>
     </section>
   </div>

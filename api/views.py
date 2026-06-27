@@ -1,14 +1,12 @@
-from decimal import Decimal
-from typing import Any
+from api.serializers import ProductListSerializer, ProductDetailSerializer, CategorySerializer, OrderSerializer, \
+    RegisterSerializer, CartItemSerializer, CartSerializer, ReviewSerializer
 
-from django.db.models import Avg, QuerySet
+from decimal import Decimal
+from django.db import transaction
+from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404
-from rest_framework import filters, permissions, status, viewsets
-from rest_framework.authentication import SessionAuthentication
-from rest_framework.exceptions import PermissionDenied, ValidationError
-from rest_framework.request import Request
-from rest_framework.response import Response
-from rest_framework.views import APIView
+from django_filters.rest_framework import DjangoFilterBackend
+
 from orders.cart import (
     clear_cart,
     get_cart_items,
@@ -16,19 +14,23 @@ from orders.cart import (
     remove_from_cart,
     set_quantity, get_cart,
 )
-from reviews.models import Review
+from orders.models import Order
 
-from django.db import transaction
-
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework_simplejwt.authentication import JWTAuthentication
-
-from api.serializers import ProductListSerializer, ProductDetailSerializer, CategorySerializer, OrderSerializer, \
-    RegisterSerializer, CartItemSerializer, CartSerializer, ReviewSerializer
-from orders.models import Order, OrderItem
 from products.models import Product, Category
 
+from rest_framework import filters, permissions, status, viewsets
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.generics import CreateAPIView
+from rest_framework.request import Request
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
+from reviews.models import Review
+from reviews.services import user_can_review
+
+from typing import Any
 
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
@@ -206,21 +208,11 @@ class ProductReviewView(CreateAPIView):
                 is_active=True,
             )
 
-            # Check for duplicate review
-            if Review.objects.filter(product=product, user=self.request.user).exists():
-                raise ValidationError('You have already reviewed this product.')
+        can_review, error_message = user_can_review(self.request.user, product)
+        if not can_review:
+            if 'already reviewed' in error_message:
+                raise ValidationError(error_message)
+            else:
+                raise PermissionDenied(error_message)
 
-            if not self.user_bought_product(self.request.user, product):
-                raise PermissionDenied(
-                    'Only customers who bought this product can review it.',
-                )
-
-            serializer.save(product=product, user=self.request.user)
-
-    @staticmethod
-    def user_bought_product(user: Any, product: Product) -> bool:
-        return OrderItem.objects.filter(
-            order__user=user,
-            order__status__in=['paid', 'shipped', 'delivered'],
-            product=product,
-        ).exists()
+        serializer.save(product=product, user=self.request.user)

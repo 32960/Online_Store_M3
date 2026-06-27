@@ -56,6 +56,11 @@ Products | {{ site_name }}
                             <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-card__image">
                             <div class="product-card__info">
                                 <h4 class="product-card__name">{{ product.name }}</h4>
+                                <div class="product-card__rating">
+                                    <i class="fa-solid fa-star" style="color: #fbbf24;"></i>
+                                    <span>{{ product.rating }}</span>
+                                    <span class="review-count">({{ product.reviews.count }})</span>
+                                </div>
                                 <p class="product-card__price">{{ product.currency }}{{ product.price }}</p>
                                 <p class="product-card__description">{{ product.description|truncatewords:10 }}...</p>
                             </div>

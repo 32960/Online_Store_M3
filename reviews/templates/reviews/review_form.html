@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+Review {{ product.name }} | {{ site_name }}
+{% endblock %}
+
+{% block content %}
+<main class="review-form-page">
+  <div class="container">
+    <div class="review-form-wrapper">
+      <h1 class="review-form-title">Leave a Review</h1>
+      <h2 class="review-form-product">{{ product.name }}</h2>
+
+      <form method="post" class="review-form">
+        {% csrf_token %}
+        <div class="form-group">
+          <label class="form-label">Rating</label>
+          <div class="star-rating" id="star-rating">
+            {% for i in "12345" %}
+              <input type="radio" name="rating" value="{{ forloop.counter }}" id="star-{{ forloop.counter }}" class="star-radio" {% if form.rating.value == forloop.counter|stringformat:"s" %}checked{% endif %}>
+              <label for="star-{{ forloop.counter }}" class="star-label" data-rating="{{ forloop.counter }}">
+                <i class="fa-regular fa-star"></i>
+              </label>
+            {% endfor %}
+          </div>
+          {% if form.rating.errors %}
+              <div class="form-error">{{ form.rating.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.comment.id_for_label }}" class="form-label">Your Review</label>
+          {{ form.comment }}
+          {% if form.comment.errors %}
+            <div class="form-error">{{ form.comment.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="button button--primary">Submit Review</button>
+          <a href="{{ product.get_absolute_url }}" class="button button--secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</main>
+{% endblock %}

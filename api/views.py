@@ -2,7 +2,7 @@ from api.serializers import ProductListSerializer, ProductDetailSerializer, Cate
     RegisterSerializer, CartItemSerializer, CartSerializer, ReviewSerializer
 
 from decimal import Decimal
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -208,11 +208,14 @@ class ProductReviewView(CreateAPIView):
                 is_active=True,
             )
 
-        can_review, error_message = user_can_review(self.request.user, product)
-        if not can_review:
-            if 'already reviewed' in error_message:
-                raise ValidationError(error_message)
-            else:
-                raise PermissionDenied(error_message)
+            can_review, error_message = user_can_review(self.request.user, product)
+            if not can_review:
+                if 'already reviewed' in error_message:
+                    raise ValidationError(error_message)
+                else:
+                    raise PermissionDenied(error_message)
 
-        serializer.save(product=product, user=self.request.user)
+            try:
+                serializer.save(product=product, user=self.request.user)
+            except IntegrityError:
+                raise ValidationError('You have already reviewed this product.')

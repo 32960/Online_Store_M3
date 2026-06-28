@@ -16,19 +16,22 @@
       </ul>
     </nav>
     {% if user.is_authenticated %}
-    <div class="header__user-actions" id="auth-user">
-      <a href="{% url 'users:profile' %}" class="user-icon" aria-label="My Account">
+    <div class="header__user-actions">
+      <a href="{% url 'users:account' %}" class="user-icon" aria-label="My Account">
         <img src="{% static 'img/icons/User_alt.svg' %}" alt="User Account">
       </a>
       <a href="{% url 'orders:cart' %}" class="cart-icon" aria-label="Shopping Cart">
         <img src="{% static 'img/icons/Shopping_bag.svg' %}" alt="Shopping Cart">
       </a>
+      <form method="post" action="{% url 'users:logout' %}" class="logout-form">
+        {% csrf_token %}
+        <button type="submit" class="button button--logout">Logout</button>
+      </form>
     </div>
-
     {% else %}
-    <div class="header__auth-buttons" id="auth-guest">
-      <a href="#" class="button button--secondary">Sign in</a>
-      <a href="#" class="button button--primary">Register</a>
+    <div class="header__auth-buttons">
+      <a href="{% url 'users:login' %}" class="button button--secondary">Sign in</a>
+      <a href="{% url 'users:register' %}" class="button button--primary">Register</a>
     </div>
 
     {% endif %}

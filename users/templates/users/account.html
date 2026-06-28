@@ -1,233 +1,165 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Account | {{ site_name }}</title>
+{% extends 'base.html' %}
+{% load static %}
 
-  <!-- Google Fonts & Font Awesome -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+{% block title %}
+My Account | {{ site_name }}
+{% endblock %}
 
-  <!-- Main CSS -->
-  <link rel="stylesheet" href="../static/css/main.css">
-</head>
-<body>
-<!-- Header -->
-<header>
-  <div class="header-container">
-    <a href="home.html" class="header__logo">
-      <img src="../static/img/logo.svg" alt="{{ site_name }} Logo">
-      <p class="logo-text">{{ site_name }}</p>
-    </a>
-    <nav class="header__nav">
-      <ul>
-        <li><a href="home.html">Products</a></li>
-        <li><a href="guides-recipes.html">Guides & Recipes</a></li>
-        <li><a href="#">Community</a></li>
-        <li><a href="#">Resources</a></li>
-        <li><a href="#">Contact</a></li>
-      </ul>
-    </nav>
-    <div class="header__auth-buttons" id="auth-guest">
-      <a href="login.html" class="button button--secondary">Sign in</a>
-      <a href="register.html" class="button button--primary">Register</a>
-    </div>
-    <div class="header__user-actions" id="auth-user">
-      <a href="account.html" class="user-icon" aria-label="My Account">
-        <img src="../static/img/icons/User_alt.svg" alt="User Account">
-      </a>
-      <a href="cart.html" class="cart-icon" aria-label="Shopping Cart">
-        <img src="../static/img/icons/Shopping_bag.svg" alt="Shopping Cart">
-      </a>
-
-    </div>
-  </div>
-</header>
-
-<!-- Main Content -->
+{% block content %}
 <main class="account-page-wrapper">
   <div class="account-container">
+    <h1 class="account-form-title">My Account</h1>
+
     <!-- Tabs Navigation -->
     <div class="account-tabs">
-      <button class="account-tab active" data-tab-target="#order-history">Order History</button>
-      <button class="account-tab" data-tab-target="#account-info">Account Information</button>
+     <a href="?tab=profile" class="account-tab {% if active_tab == 'profile' %}active{% endif %}">Profile</a>
+     <a href="?tab=orders" class="account-tab {% if active_tab == 'orders' %}active{% endif %}">Order History ({{ total_orders }})</a>
+     <a href="?tab=password" class="account-tab {% if active_tab == 'password' %}active{% endif %}">Change Password</a>
     </div>
 
-    <!-- Tabs Content -->
+    <!-- Tab Content -->
     <div class="tab-content">
-      <!-- Order History Panel -->
-      <div id="order-history" class="tab-pane active">
-        <div class="order-history-table">
-          <!-- Table Header -->
-          <div class="order-table-header">
-            <div class="order-table-cell">Order Details</div>
-            <div class="order-table-cell">Order Status</div>
-            <div class="order-table-cell">Total</div>
-          </div>
-          <!-- Table Body -->
-          <div class="order-table-body">
-            <!-- Example Row 1 -->
-            <div class="order-table-row">
-              <div class="order-table-cell">
-                <span class="order-id">#123232122033</span>
-                <span class="order-date">7 Mar 2025</span>
-              </div>
-              <div class="order-table-cell">
-                <span class="order-status">Pending</span>
-              </div>
-              <div class="order-table-cell">
-                <span class="order-total">$100.00</span>
-              </div>
-            </div>
-            <!-- Example Row 2 -->
-            <div class="order-table-row">
-              <div class="order-table-cell">
-                <span class="order-id">#123232122033</span>
-                <span class="order-date">7 Mar 2025</span>
-              </div>
-              <div class="order-table-cell">
-                <span class="order-status">Pending</span>
-              </div>
-              <div class="order-table-cell">
-                <span class="order-total">$90.00</span>
-              </div>
-            </div>
-            <!-- ... add more rows as needed ... -->
-            <div class="order-table-row">
-              <div class="order-table-cell">
-                <span class="order-id">#123232122033</span>
-                <span class="order-date">7 Mar 2025</span>
-              </div>
-              <div class="order-table-cell">
-                <span class="order-status">Confirmed</span>
-              </div>
-              <div class="order-table-cell">
-                <span class="order-total">$140.00</span>
-              </div>
-            </div>
-            <div class="order-table-row">
-              <div class="order-table-cell">
-                <span class="order-id">#123232122033</span>
-                <span class="order-date">7 Mar 2025</span>
-              </div>
-              <div class="order-table-cell">
-                <span class="order-status">Delivered</span>
-              </div>
-              <div class="order-table-cell">
-                <span class="order-total">$120.00</span>
-              </div>
-            </div>
-            <div class="order-table-row">
-              <div class="order-table-cell">
-                <span class="order-id">#123232122033</span>
-                <span class="order-date">7 Mar 2025</span>
-              </div>
-              <div class="order-table-cell">
-                <span class="order-status">Shipped</span>
-              </div>
-              <div class="order-table-cell">
-                <span class="order-total">$120.00</span>
-              </div>
-            </div>
-            <div class="order-table-row">
-              <div class="order-table-cell">
-                <span class="order-id">#123232122033</span>
-                <span class="order-date">7 Mar 2025</span>
-              </div>
-              <div class="order-table-cell">
-                <span class="order-status">Shipped</span>
-              </div>
-              <div class="order-table-cell">
-                <span class="order-total">$120.00</span>
-              </div>
-            </div>
-            <div class="order-table-row">
-              <div class="order-table-cell">
-                <span class="order-id">#123232122033</span>
-                <span class="order-date">7 Mar 2025</span>
-              </div>
-              <div class="order-table-cell">
-                <span class="order-status">Shipped</span>
-              </div>
-              <div class="order-table-cell">
-                <span class="order-total">$120.00</span>
-              </div>
-            </div>
-            <div class="order-table-row">
-              <div class="order-table-cell">
-                <span class="order-id">#123232122033</span>
-                <span class="order-date">7 Mar 2025</span>
-              </div>
-              <div class="order-table-cell">
-                <span class="order-status">Shipped</span>
-              </div>
-              <div class="order-table-cell">
-                <span class="order-total">$120.00</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- Pagination (simplified) -->
-        <div class="account-pagination">
-          <a href="#" class="pagination-link-account disabled">← Previous</a>
-          <a href="#" class="pagination-link-account">Next →</a>
-        </div>
-      </div>
 
-      <!-- Account Information Panel -->
-      <div id="account-info" class="tab-pane">
+      <!-- Profile Tab -->
+      {% if active_tab == 'profile' %}
+      <div class="tab-pane active">
         <div class="account-form-container">
-          <h2 class="account-form-title">Personal Info</h2>
-          <form id="account-info-form">
+          <h2 class="account-form-title">Profile Information</h2>
+
+          <form method="post" action="{% url 'users:update-profile' %}" id="account-info-form">
+            {% csrf_token %}
+
             <div class="checkout-form-group">
-              <label for="acc-full-name">Full Name</label>
-              <input type="text" id="acc-full-name" name="full_name" class="Input" placeholder="Value" required>
+              <label for="id_first_name">First Name</label>
+              {{ profile_form.first_name }}
+              {% if profile_form.first_name.errors %}
+                <div class="form-error">{{ profile_form.first_name.errors }}</div>
+              {% endif %}
             </div>
+
             <div class="checkout-form-group">
-              <label for="acc-phone">Phone number</label>
-              <input type="tel" id="acc-phone" name="phone" class="Input" placeholder="Value" required>
+              <label for="id_last_name">Last Name</label>
+              {{ profile_form.last_name }}
+              {% if profile_form.last_name.errors %}
+                <div class="form-error">{{ profile_form.last_name.errors }}</div>
+              {% endif %}
             </div>
+
             <div class="checkout-form-group">
-              <label for="acc-email">Email</label>
-              <input type="email" id="acc-email" name="email" class="Input" placeholder="example@mail.com" required>
+              <label for="id_email">Email</label>
+              {{ profile_form.email }}
+              {% if profile_form.email.errors %}
+                <div class="form-error">{{ profile_form.email.errors }}</div>
+              {% endif %}
             </div>
+
             <div class="checkout-form-group">
-              <label for="acc-city">City</label>
-              <input type="text" id="acc-city" name="city" class="Input" placeholder="Value" required>
+              <label for="id_phone">Phone</label>
+              {{ profile_form.phone }}
+              {% if profile_form.phone.errors %}
+                <div class="form-error">{{ profile_form.phone.errors }}</div>
+              {% endif %}
             </div>
-            <div class="checkout-form-group">
-              <label for="acc-address">Shipping address</label>
-              <textarea id="acc-address" name="address" class="Textarea" placeholder="Value" rows="3" required></textarea>
-            </div>
-            <button type="submit" class="button button--primary button--full-width">Save</button>
-            <a href="#" class="button button--secondary button--full-width" id="logout-button">Logout</a>
+
+            <button type="submit" class="button button--primary button--full-width">Save Changes</button>
           </form>
         </div>
       </div>
+      {% endif %}
+
+      <!-- Orders Tab -->
+      {% if active_tab == 'orders' %}
+        <div class="tab-pane active">
+          {% if orders %}
+          <div class="order-history-table">
+            <div class="order-table-header">
+              <div>Order</div>
+              <div>Date</div>
+              <div>Total</div>
+            </div>
+            {% for order in orders %}
+            <div class="order-table-row">
+              <div class="order-table-cell">
+                <span>#{{ order.id }}</span>
+                <span class="order-date">{{ order.status|title }}</span>
+              </div>
+              <div class="order-table-cell">
+                <span>{{ order.created_at|date:"M d, Y" }}</span>
+              </div>
+              <div class="order-table-cell">
+                <span>${{ order.total_price }}</span>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="account-form-container">
+            <p style="text-align: center; color: var(--grey-text);">You have no orders yet.</p>
+            <a href="{% url 'products:product-list' %}" class="button button--primary" style="margin-top: 1rem;">Start Shopping</a>
+          </div>
+          {% endif %}
+        </div>
+        {% if orders.has_other_pages %}
+        <div class="account-pagination">
+          {% if orders.has_previous %}
+            <a href="?tab=orders&page={{ orders.previous_page_number }}" class="pagination-link-account">← Previous</a>
+          {% else %}
+            <a class="pagination-link-account disabled">← Previous</a>
+          {% endif %}
+
+          <span>Page {{ orders.number }} of {{ orders.paginator.num_pages }}</span>
+
+          {% if orders.has_next %}
+            <a href="?tab=orders&page={{ orders.next_page_number }}" class="pagination-link-account">Next →</a>
+          {% else %}
+            <a class="pagination-link-account disabled">Next →</a>
+          {% endif %}
+        </div>
+        {% endif %}
+      {% endif %}
+      <!-- Password Tab -->
+      {% if active_tab == 'password' %}
+      <div class="tab-pane active">
+        <div class="account-form-container">
+          <h2 class="account-form-title">Change Password</h2>
+
+          <form method="post" action="{% url 'users:change-password' %}">
+            {% csrf_token %}
+
+            <div class="checkout-form-group">
+              <label for="id_old_password">Current Password</label>
+              {{ password_form.old_password }}
+              {% if password_form.old_password.errors %}
+                <div class="form-error">{{ password_form.old_password.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="checkout-form-group">
+              <label for="id_new_password1">New Password</label>
+              {{ password_form.new_password1 }}
+              {% if password_form.new_password1.errors %}
+                <div class="form-error">{{ password_form.new_password1.errors }}</div>
+              {% endif %}
+              {% if password_form.new_password1.help_text %}
+                <small class="form-help">{{ password_form.new_password1.help_text|safe }}</small>
+              {% endif %}
+            </div>
+
+            <div class="checkout-form-group">
+              <label for="id_new_password2">Confirm New Password</label>
+              {{ password_form.new_password2 }}
+              {% if password_form.new_password2.errors %}
+                <div class="form-error">{{ password_form.new_password2.errors }}</div>
+              {% endif %}
+            </div>
+
+            <button type="submit" class="button button--primary button--full-width">Change Password</button>
+          </form>
+        </div>
+      </div>
+      {% endif %}
 
     </div>
   </div>
 </main>
-
-<!-- Footer -->
-<footer>
-  <img src="../static/img/background/image-footer.svg" alt="{{ site_name }} Hops Logo" class="footer__hops-logo">
-  <nav class="footer__nav">
-    <ul>
-      <li><a href="#">Contact</a></li>
-      <li><a href="#">FAQ</a></li>
-      <li><a href="#">Community</a></li>
-      <li><a href="#">Resources</a></li>
-      <li><a href="#">License</a></li>
-    </ul>
-  </nav>
-  <p class="footer__copyright">© {{ site_name }} 2025. All rights reserved</p>
-</footer>
-
-<!-- JS -->
-<script src="../static/js/main.js"></script>
-</body>
-</html>
+{% endblock %}

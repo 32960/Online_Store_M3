@@ -1,84 +1,66 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register | {{ site_name }}</title>
+{% extends 'base.html' %}
+{% load static %}
 
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+{% block title %}
+Register | {{ site_name }}
+{% endblock %}
 
-    <!-- Font Awesome CDN -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
-    <!-- Link to your main CSS file -->
-    <link rel="stylesheet" href="../static/css/main.css">
-</head>
-<body>
-<!-- Header -->
-<header>
-    <div class="header-container">
-        <a href="home.html" class="header__logo">
-            <img src="../static/img/logo.svg" alt="{{ site_name }} Logo">
-            <p class="logo-text">{{ site_name }}</p>
-        </a>
-        <nav class="header__nav">
-            <ul>
-                <li><a href="home.html">Products</a></li>
-                <li><a href="guides-recipes.html">Guides & Recipes</a></li>
-                <li><a href="#">Community</a></li>
-                <li><a href="#">Resources</a></li>
-                <li><a href="#">Contact</a></li>
-            </ul>
-        </nav>
-
-        <!-- Block for unauthorized user -->
-        <div class="header__auth-buttons" id="auth-guest">
-            <a href="login.html" class="button button--secondary">Sign in</a>
-            <a href="register.html" class="button button--primary">Register</a>
-        </div>
-
-        <!-- Block for authorized user -->
-        <div class="header__user-actions" id="auth-user">
-            <a href="account.html" class="user-icon" aria-label="My Account">
-                <img src="../static/img/icons/User_alt.svg" alt="User Account">
-            </a>
-            <a href="cart.html" class="cart-icon" aria-label="Shopping Cart">
-                <img src="../static/img/icons/Shopping_bag.svg" alt="Shopping Cart">
-            </a>
-
-        </div>
-    </div>
-</header>
-
-<!-- Main Content -->
+{% block content %}
 <main class="auth-page-wrapper">
     <div class="auth-background">
-        <img src="../static/img/background/pattern.jpg" alt="Background pattern">
+        <img src="{% static 'img/background/pattern.jpg' %}" alt="Background pattern">
     </div>
+
     <div class="auth-form-container">
         <div class="auth-container auth-container--register">
             <div class="Legend">
-                <h1 class="auth-title">Register</h1>
+                <h1 class="auth-title">Create Account</h1>
             </div>
 
-            <form class="auth-form" id="register-form">
+            <form method="post" class="auth-form">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="form-error-box">
+                        {% for error in form.non_field_errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
                 <div class="InputField">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" class="Input" placeholder="Value" required>
-                </div>
-                <div class="InputField">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" name="password" class="Input" placeholder="Value" required>
+                    <label for="id_username">Username</label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                        <div class="form-error">{{ form.username.errors }}</div>
+                    {% endif %}
                 </div>
 
-                <div class="CheckboxField">
-                    <label class="checkbox-container">Remember me
-                        <input type="checkbox" checked>
-                        <span class="checkmark"></span>
-                    </label>
+                <div class="InputField">
+                    <label for="id_email">Email</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <div class="form-error">{{ form.email.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="InputField">
+                    <label for="id_password1">Password</label>
+                    {{ form.password1 }}
+                    {% if form.password1.errors %}
+                        <div class="form-error">{{ form.password1.errors }}</div>
+                    {% endif %}
+                    {% if form.password1.help_text %}
+                        <small class="form-help">{{ form.password1.help_text|safe }}</small>
+                    {% endif %}
+                </div>
+
+                <div class="InputField">
+                    <label for="id_password2">Confirm Password</label>
+                    {{ form.password2 }}
+                    {% if form.password2.errors %}
+                        <div class="form-error">{{ form.password2.errors }}</div>
+                    {% endif %}
                 </div>
 
                 <div class="ButtonGroup">
@@ -86,27 +68,10 @@
                 </div>
             </form>
 
-            <p class="auth-switch">Already have an account? <a href="login.html">Sign in</a></p>
+            <p class="auth-switch">
+                Already have an account? <a href="{% url 'users:login' %}">Sign in</a>
+            </p>
         </div>
     </div>
 </main>
-
-<!-- Footer -->
-<footer>
-    <img src="../static/img/background/image-footer.svg" alt="Hop & Barley Hops Logo" class="footer__hops-logo">
-    <nav class="footer__nav">
-        <ul>
-            <li><a href="#">Contact</a></li>
-            <li><a href="#">FAQ</a></li>
-            <li><a href="#">Community</a></li>
-            <li><a href="#">Resources</a></li>
-            <li><a href="#">License</a></li>
-        </ul>
-    </nav>
-    <p class="footer__copyright">© {{ site_name }} 2025. All rights reserved</p>
-</footer>
-
-<!-- Link to your main JavaScript file -->
-<script src="../static/js/main.js"></script>
-</body>
-</html>
+{% endblock %}

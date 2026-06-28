@@ -68,6 +68,23 @@ class CheckoutView(LoginRequiredMixin, FormView):
     template_name = 'orders/checkout.html'
     form_class = CheckoutForm
     success_url = reverse_lazy('orders:cart')
+    # success_url = reverse_lazy('orders:checkout-success')
+
+    def get_initial(self):
+        """Autofill form from user profile."""
+        initial = super().get_initial()
+        user = self.request.user
+
+        if user.first_name:
+            initial['first_name'] = user.first_name
+        if user.last_name:
+            initial['last_name'] = user.last_name
+        if user.email:
+            initial['email'] = user.email
+        if user.phone:
+            initial['phone'] = user.phone
+
+        return initial
 
     def get(self, request, *args, **kwargs):
         if not get_cart_items(request):
@@ -123,6 +140,7 @@ class CheckoutView(LoginRequiredMixin, FormView):
 
         order.status = 'paid'
         order.total_price = get_cart_total(self.request)
+        order.save(update_fields=['status', 'total_price'])
         return order
 
     def send_emails(self, order):

@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordChangeForm, UserCreationForm
 from django.contrib.auth.forms import AuthenticationForm
+from users.models import Address
 
 User = get_user_model()
 
@@ -90,3 +91,15 @@ class EmailAuthenticationForm(AuthenticationForm):
     )
 
 
+class AddressForm(forms.ModelForm):
+    """Форма для создания/редактирования адреса."""
+
+    class Meta:
+        model = Address
+        fields = ['full_name', 'phone', 'city', 'shipping_address']
+        widgets = {
+            'full_name': forms.TextInput(attrs={'class': 'Input', 'placeholder': 'John Doe'}),
+            'phone': forms.TextInput(attrs={'class': 'Input', 'placeholder': '+1 (234) 567-8900'}),
+            'city': forms.TextInput(attrs={'class': 'Input', 'placeholder': 'New York'}),
+            'shipping_address': forms.TextInput(attrs={'class': 'Input', 'placeholder': '123 Main Street'}),
+        }

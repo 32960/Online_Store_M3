@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import Sum, ExpressionWrapper, F, DecimalField
 
+from config import settings
 from products.models import JournalizedModel
 
 
@@ -22,15 +23,15 @@ class Order(JournalizedModel):
         ('cod', 'Cash On Delivery'),
     ]
 
-    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='orders',)
     status = models.CharField(max_length=20,
                               choices=STATUS_CHOICES,
                               default='pending')
     total_price = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
     full_name = models.CharField(max_length=100)
-    phone = models.CharField(max_length=15)
+    phone = models.CharField(max_length=20)
     city = models.CharField(max_length=100)
-    shipping_address = models.TextField()
+    shipping_address = models.CharField(max_length=255)
     payment_method = models.CharField(max_length=20, choices=PAYMENT_CHOICES)
 
     # payment_id = models.CharField(max_length=100, null=True, blank=True)

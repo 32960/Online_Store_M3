@@ -8,7 +8,7 @@ User = get_user_model()
 
 
 class RegisterForm(UserCreationForm):
-    """Форма регистрации нового пользователя."""
+    """New user registration form."""
 
     email = forms.EmailField(
         required=True,
@@ -28,7 +28,7 @@ class RegisterForm(UserCreationForm):
         self.fields['password2'].widget.attrs['class'] = 'Input'
 
     def clean_email(self):
-        """Проверка уникальности email при регистрации."""
+        """Email uniqueness check during registration."""
         email = self.cleaned_data.get('email')
         if User.objects.filter(email__iexact=email).exists():
             raise forms.ValidationError('A user with this email already exists.')
@@ -49,15 +49,13 @@ class EditProfileForm(forms.ModelForm):
         }
 
     def clean_email(self):
-        """Проверка уникальности email при редактировании."""
+        """Email uniqueness check during editing."""
         email = self.cleaned_data.get('email')
         user = self.instance
 
-        # Если email не изменился — всё ок
         if user.email and email.lower() == user.email.lower():
             return email
 
-        # Проверяем, не занят ли email другим пользователем
         if User.objects.filter(email__iexact=email).exclude(pk=user.pk).exists():
             raise forms.ValidationError('A user with this email already exists.')
 
@@ -75,10 +73,7 @@ class CustomPasswordChangeForm(PasswordChangeForm):
 
 class EmailAuthenticationForm(AuthenticationForm):
     """
-    Форма входа по email.
-
-    Изменяет только название поля с 'Username' на 'Email'.
-    Логика аутентификации уже работает через USERNAME_FIELD = 'email'.
+    Email-based login form.
     """
     username = forms.EmailField(
         label='Email',
@@ -92,7 +87,7 @@ class EmailAuthenticationForm(AuthenticationForm):
 
 
 class AddressForm(forms.ModelForm):
-    """Форма для создания/редактирования адреса."""
+    """Form for creating/editing an address."""
 
     class Meta:
         model = Address

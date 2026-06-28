@@ -17,7 +17,7 @@ from django.urls import reverse_lazy
 app_name = 'users'
 
 urlpatterns = [
-    # Аутентификация
+    # Authentication
     path('register/', RegisterView.as_view(), name='register'),
     path('login/', CustomLoginView.as_view(), name='login'),
     path('logout/', CustomLogoutView.as_view(), name='logout'),
@@ -51,12 +51,12 @@ urlpatterns = [
          ),
          name='password_reset_complete'),
 
-    # Личный кабинет
+    # Personal Account
     path('account/', AccountView.as_view(), name='account'),
     path('account/update/', UpdateProfileView.as_view(), name='update-profile'),
     path('account/password/', ChangePasswordView.as_view(), name='change-password'),
 
-    # Адреса
+    # Addresses
     path('account/addresses/', AddressListView.as_view(), name='address-list'),
     path('account/addresses/add/', AddressCreateView.as_view(), name='address-create'),
     path('account/addresses/<int:pk>/edit/', AddressUpdateView.as_view(), name='address-update'),

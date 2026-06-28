@@ -14,12 +14,12 @@ class User(AbstractUser, JournalizedModel):
         return self.username
 
     def get_last_address(self):
-        """Возвращает последний адрес пользователя."""
+        """Returns the user's last address.."""
         return self.addresses.order_by('-created_at').first()
 
 
 class Address(JournalizedModel):
-    """Адрес доставки пользователя."""
+    """User's delivery address."""
 
     user = models.ForeignKey(
         User,

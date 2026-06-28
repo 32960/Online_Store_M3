@@ -103,7 +103,7 @@ class UpdateProfileView(LoginRequiredMixin, UpdateView):
         context['password_form'] = CustomPasswordChangeForm(user=self.request.user)
         context['orders'] = Order.objects.filter(user=self.request.user).order_by('-created_at')
         context['total_orders'] = context['orders'].count()
-        context['active_tab'] = 'profile'  # ← Возвращаемся на вкладку profile
+        context['active_tab'] = 'profile'
         return context
 
     def form_valid(self, form):
@@ -112,7 +112,7 @@ class UpdateProfileView(LoginRequiredMixin, UpdateView):
 
     def form_invalid(self, form):
         messages.error(self.request, 'Please correct the errors below.')
-        return super().form_invalid(form)  # ← Используем super() с нашим get_context_data
+        return super().form_invalid(form)
 
     def get(self, request, *args, **kwargs):
         return redirect('users:account')

@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+{% if object %}Edit Address{% else %}Add Address{% endif %} | {{ site_name }}
+{% endblock %}
+
+{% block content %}
+<main class="account-page-wrapper">
+  <div class="account-container">
+    <h1 class="account-form-title">
+      {% if object %}Edit Address{% else %}Add New Address{% endif %}
+    </h1>
+
+    <div class="account-form-container">
+      <form method="post">
+        {% csrf_token %}
+
+        {% for field in form %}
+        <div class="checkout-form-group">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+            <div class="form-error">{{ field.errors }}</div>
+          {% endif %}
+        </div>
+        {% endfor %}
+
+        <div class="address-form-actions">
+          <button type="submit" class="button button--primary button--standard button--icon">
+            <i class="fa-solid fa-check"></i>
+            <span>Save</span>
+          </button>
+          <a href="{% url 'users:address-list' %}" class="button button--secondary button--standard button--icon">
+            <i class="fa-solid fa-xmark"></i>
+            <span>Cancel</span>
+          </a>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</main>
+{% endblock %}

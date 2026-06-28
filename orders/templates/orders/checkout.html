@@ -6,60 +6,60 @@
 
 <!-- Main Content -->
 <main class="checkout-page-wrapper">
-    <div class="checkout-container">
-        <h1 class="checkout-title">Order Details</h1>
+  <div class="checkout-container">
+    <h1 class="checkout-title">Order Details</h1>
 
-        <form id="checkout-form" method="post" action="{% url 'orders:checkout' %}">
-            <!-- Shipping Information -->
-            <section class="checkout-section">
-                <h2 class="checkout-section__title">Shipping information</h2>
-                {% csrf_token %}
-                {% for field in form %}
-                    {% if field.name != 'payment_method' %}
-                        {% if field.errors %}
-                            <div class="error" style="color:red;">
-                                {{ field.errors }}
-                            </div>
-                        {% endif %}
+    <form method="post" action="{% url 'orders:checkout' %}">
+    {% csrf_token %}
 
-                        <div class="checkout-form-group">
-                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                            {{ field }}
-                        </div>
-                    {% endif %}
-                {% endfor %}
-            </section>
+      <!-- Shipping Information -->
+      <section class="checkout-section">
+        <h2 class="checkout-section__title">Shipping information</h2>
+        {% for field in form %}
+          {% if field.name != 'payment_method' %}
+            {% if field.errors %}
+              <div class="checkout-field-error">
+                {{ field.errors }}
+              </div>
+            {% endif %}
 
-            <!-- Payment Method -->
-            <section class="checkout-section">
-                <h2 class="checkout-section__title">Payment Method</h2>
-                <div class="payment-options">
-                    {% for radio in form.payment_method %}
-                        {% if not forloop.first %}
-                            <label class="radio-option">
-                                {{ radio.tag }}
-                                    <span class="radio-custom"></span>
-                                {{ radio.choice_label }}
-                            </label>
-                        {% endif %}
-                    {% endfor %}
+            <div class="checkout-form-group">
+              <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field }}
+            </div>
+          {% endif %}
+        {% endfor %}
+      </section>
 
-                </div>
-            </section>
+      <!-- Payment Method -->
+      <section class="checkout-section">
+        <h2 class="checkout-section__title">Payment Method</h2>
+        <div class="payment-options">
+          {% for radio in form.payment_method %}
+            {% if not forloop.first %}
+              <label class="radio-option">
+                {{ radio.tag }}
+                  <span class="radio-custom"></span>
+                {{ radio.choice_label }}
+              </label>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </section>
 
-            <!-- Order Summary -->
-            <section class="checkout-summary">
-                <h2 class="checkout-section__title">Order Summary</h2>
-                <div class="summary-details">
-                    <div class="summary-total">
-                        <p>Total</p>
-                        <p>${{ total }}</p>
-                    </div>
-                    <button type="submit" class="button button--primary button--pay">Pay</button>
-                </div>
-            </section>
-        </form>
-    </div>
+      <!-- Order Summary -->
+      <section class="checkout-summary">
+        <h2 class="checkout-section__title">Order Summary</h2>
+        <div class="summary-details">
+          <div class="summary-total">
+            <p>Total</p>
+            <p>${{ total }}</p>
+          </div>
+          <button type="submit" class="button button--primary button--pay">Pay</button>
+        </div>
+      </section>
+    </form>
+  </div>
 </main>
 
 {% endblock %}

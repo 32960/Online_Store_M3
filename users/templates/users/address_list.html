@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+My Addresses | {{ site_name }}
+{% endblock %}
+
+{% block content %}
+<main class="account-page-wrapper">
+  <div class="account-container">
+    <div class="page-header-with-action">
+      <h1 class="account-form-title">My Addresses</h1>
+      <a href="{% url 'users:address-create' %}" class="button button--primary button--standard button--icon">
+        <i class="fa-solid fa-plus"></i>
+        <span>Add New Address</span>
+      </a>
+    </div>
+
+    {% if addresses %}
+      {% for address in addresses %}
+      <div class="account-form-container address-item">
+        <p><span class="address-field-label">Full name:</span> <strong>{{ address.full_name }}</strong></p>
+        <p><span class="address-field-label">Phone:</span> {{ address.phone }}</p>
+        <p><span class="address-field-label">Address:</span> {{ address.city }}, {{ address.shipping_address }}</p>
+        <div class="address-item-actions">
+          <a href="{% url 'users:address-update' address.pk %}" class="button button--secondary button--standard button--icon">
+            <i class="fa-solid fa-pen"></i>
+            <span>Edit</span>
+          </a>
+          <form method="post" action="{% url 'users:address-delete' address.pk %}" class="address-item-form">
+            {% csrf_token %}
+            <button type="submit" class="button button--danger button--standard button--icon" onclick="return confirm('Delete this address?')">
+              <i class="fa-solid fa-trash"></i>
+              <span>Delete</span>
+            </button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+
+    {% else %}
+      <div class="account-form-container">
+        <p class="text-center text-grey">You have no saved addresses.</p>
+      </div>
+    {% endif %}
+
+    <div class="address-list-footer">
+      <a href="{% url 'users:account' %}" class="button button--secondary button--icon">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span>Back to Account</span>
+      </a>
+    </div>
+  </div>
+</main>
+{% endblock %}
+

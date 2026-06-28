@@ -12,9 +12,16 @@ My Account | {{ site_name }}
 
     <!-- Tabs Navigation -->
     <div class="account-tabs">
-     <a href="?tab=profile" class="account-tab {% if active_tab == 'profile' %}active{% endif %}">Profile</a>
-     <a href="?tab=orders" class="account-tab {% if active_tab == 'orders' %}active{% endif %}">Order History ({{ total_orders }})</a>
-     <a href="?tab=password" class="account-tab {% if active_tab == 'password' %}active{% endif %}">Change Password</a>
+      <a href="?tab=profile" class="account-tab {% if active_tab == 'profile' %}active{% endif %}">Profile</a>
+      <a href="?tab=addresses" class="account-tab {% if active_tab == 'addresses' %}active{% endif %}">
+        Addresses ({{ addresses_count }})
+      </a>
+      <a href="?tab=orders" class="account-tab {% if active_tab == 'orders' %}active{% endif %}">
+        Order History ({{ total_orders }})
+      </a>
+      <a href="?tab=password" class="account-tab {% if active_tab == 'password' %}active{% endif %}">
+        Change Password
+      </a>
     </div>
 
     <!-- Tab Content -->
@@ -67,6 +74,52 @@ My Account | {{ site_name }}
       </div>
       {% endif %}
 
+      <!-- Addresses Tab -->
+      {% if active_tab == 'addresses' %}
+      <div class="tab-pane active">
+        <div class="account-form-container">
+          <div class="account-addresses-header">
+            <h2 class="account-form-title">My Addresses</h2>
+            <a href="{% url 'users:address-list' %}" class="button button--secondary button--standard button--icon">
+              <i class="fa-solid fa-list"></i>
+              <span>Manage Addresses</span>
+            </a>
+          </div>
+
+          {% if addresses %}
+            <div class="addresses-grid">
+              {% for address in addresses %}
+              <div class="address-card">
+                <div class="address-card__body">
+                  <p><strong>{{ address.full_name }}</strong></p>
+                  <p>{{ address.phone }}</p>
+                  <p>{{ address.city }}, {{ address.shipping_address }}</p>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+
+            <div class="account-addresses-actions">
+              <a href="{% url 'users:address-create' %}" class="button button--primary button--icon">
+                <i class="fa-solid fa-plus"></i>
+                <span>Add New Address</span>
+              </a>
+            </div>
+          {% else %}
+            <p class="account-addresses-empty">
+              You have no saved addresses.
+            </p>
+            <div class="account-addresses-empty-wrapper">
+              <a href="{% url 'users:address-create' %}" class="button button--primary button--icon">
+                <i class="fa-solid fa-plus"></i>
+                <span>Add Your First Address</span>
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
       <!-- Orders Tab -->
       {% if active_tab == 'orders' %}
         <div class="tab-pane active">
@@ -94,8 +147,8 @@ My Account | {{ site_name }}
           </div>
           {% else %}
           <div class="account-form-container">
-            <p style="text-align: center; color: var(--grey-text);">You have no orders yet.</p>
-            <a href="{% url 'products:product-list' %}" class="button button--primary" style="margin-top: 1rem;">Start Shopping</a>
+            <p class="text-center text-grey">You have no orders yet.</p>
+            <a href="{% url 'products:product-list' %}" class="button button--primary mt-1">Start Shopping</a>
           </div>
           {% endif %}
         </div>
@@ -117,6 +170,7 @@ My Account | {{ site_name }}
         </div>
         {% endif %}
       {% endif %}
+
       <!-- Password Tab -->
       {% if active_tab == 'password' %}
       <div class="tab-pane active">

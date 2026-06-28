@@ -7,56 +7,56 @@ Sign In | {{ site_name }}
 
 {% block content %}
 <main class="auth-page-wrapper">
-    <div class="auth-background">
-        <img src="{% static 'img/background/pattern.jpg' %}" alt="Background pattern">
-    </div>
+  <div class="auth-background">
+    <img src="{% static 'img/background/pattern.jpg' %}" alt="Background pattern">
+  </div>
 
-    <div class="auth-form-container">
-        <div class="auth-container auth-container--login">
-            <div class="Legend">
-                <h1 class="auth-title">Sign In</h1>
-            </div>
+  <div class="auth-form-container">
+    <div class="auth-container auth-container--login">
+      <div class="Legend">
+        <h1 class="auth-title">Sign In</h1>
+      </div>
 
-            <form method="post" class="auth-form">
-                {% csrf_token %}
+      <form method="post" class="auth-form">
+        {% csrf_token %}
 
-                {% if form.non_field_errors %}
-                    <div class="form-error-box">
-                        {% for error in form.non_field_errors %}
-                            <p>{{ error }}</p>
-                        {% endfor %}
-                    </div>
-                {% endif %}
+        {% if form.non_field_errors %}
+          <div class="form-error-box">
+            {% for error in form.non_field_errors %}
+              <p>{{ error }}</p>
+            {% endfor %}
+          </div>
+        {% endif %}
 
-                <div class="InputField">
-                    <label for="{{ form.username.id_for_label }}">Email</label>
-                    {{ form.username }}
-                    {% if form.username.errors %}
-                        <div class="form-error">{{ form.username.errors }}</div>
-                    {% endif %}
-                </div>
-
-                <div class="InputField">
-                    <label for="id_password">Password</label>
-                    {{ form.password }}
-                    {% if form.password.errors %}
-                        <div class="form-error">{{ form.password.errors }}</div>
-                    {% endif %}
-                </div>
-
-                <div class="TextLink">
-                    <a href="{% url 'users:forgot-password' %}">Forgot password?</a>
-                </div>
-
-                <div class="ButtonGroup">
-                    <button type="submit" class="button button--primary">Sign In</button>
-                </div>
-            </form>
-
-            <p class="auth-switch">
-                Don't have an account? <a href="{% url 'users:register' %}">Register</a>
-            </p>
+        <div class="InputField">
+          <label for="{{ form.username.id_for_label }}">Email</label>
+          {{ form.username }}
+          {% if form.username.errors %}
+            <div class="form-error">{{ form.username.errors }}</div>
+          {% endif %}
         </div>
+
+        <div class="InputField">
+          <label for="id_password">Password</label>
+          {{ form.password }}
+          {% if form.password.errors %}
+            <div class="form-error">{{ form.password.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="TextLink">
+          <a href="{% url 'users:forgot-password' %}">Forgot password?</a>
+        </div>
+
+        <div class="ButtonGroup">
+          <button type="submit" class="button button--primary">Sign In</button>
+        </div>
+      </form>
+
+      <p class="auth-switch">
+        Don't have an account? <a href="{% url 'users:register' %}">Register</a>
+      </p>
     </div>
+  </div>
 </main>
 {% endblock %}

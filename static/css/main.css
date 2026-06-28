@@ -628,8 +628,6 @@ footer {
     object-fit: cover;
 }
 
-
-
 .auth-form-container {
     position: relative;
     z-index: 2;
@@ -769,7 +767,6 @@ footer {
 .TextLink a:hover {
     text-decoration: underline;
 }
-
 
 /*
 ========================================
@@ -1626,6 +1623,7 @@ body.user-logged-in .header__user-actions {
 }
 
 .account-form-title {
+    margin-left: 12px;
     font-size: 24px;
     font-weight: 700;
     line-height: 1;
@@ -1780,7 +1778,6 @@ body.user-logged-in .header__user-actions {
     width: 100%;
 }
 
-/* Левая колонка */
 .admin-form-col-left {
     grid-column: 1 / 2;
     grid-row: 1 / 2;
@@ -1789,7 +1786,6 @@ body.user-logged-in .header__user-actions {
     gap: 24px;
 }
 
-/* Правая колонка */
 .admin-form-col-right {
     grid-column: 2 / 3;
     grid-row: 1 / 2;
@@ -1798,7 +1794,6 @@ body.user-logged-in .header__user-actions {
     gap: 24px;
 }
 
-/* Кнопки внизу */
 .admin-form-actions {
     grid-column: 2 / 3;
     grid-row: 2 / 3;
@@ -1811,7 +1806,6 @@ body.user-logged-in .header__user-actions {
     font-weight: 600;
 }
 
-/* Карточка загрузки изображения */
 .image-upload-card {
     width: 208px;
     height: 272px;
@@ -1978,7 +1972,7 @@ body.user-logged-in .header__user-actions {
 .static-page-wrapper {
     background-color: var(--background-grey);
     padding: 80px 0;
-    min-height: 60vh; /* Минимальная высота, чтобы футер не прилипал к хедеру */
+    min-height: 60vh;
     display: flex;
     align-items: center;
 }
@@ -2290,4 +2284,202 @@ body.user-logged-in .header__user-actions {
 
 .logout-form {
     display: inline;
+}
+
+/*
+========================================
+    Shipping Information Page Style
+========================================
+*/
+.addresses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.address-card {
+    padding: 1rem;
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+/*    background: white; */
+    background: var(--background-grey);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.address-card--default {
+    border-color: var(--green);
+    background: var(--background-green);
+}
+
+.address-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.address-card__title {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.address-card__badge {
+    background: var(--green);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+}
+
+.address-card__body p {
+    margin: 0.25rem 0;
+    font-size: 0.9rem;
+    color: var(--black-main);
+}
+
+.address-card__actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: auto;
+}
+
+/*
+========================================
+    Standard Button Size (like Add to Cart)
+========================================
+*/
+.button--standard {
+    width: 304px;
+    height: 40px;
+    padding: 12px;
+    gap: 8px;
+    flex: 0 0 304px;
+}
+
+.button--icon {
+/*    display: inline-flex;
+    align-items: center;
+    justify-content: center; */
+    gap: 8px;
+}
+
+.button--icon i {
+    font-size: 1rem;
+}
+
+/*
+========================================
+    Account Addresses Styles
+========================================
+*/
+
+.account-addresses-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.account-addresses-actions {
+    margin-top: 1.5rem;
+}
+
+.account-addresses-empty {
+    text-align: center;
+    color: var(--grey-text);
+    margin-bottom: 1.5rem;
+}
+
+.account-addresses-empty-wrapper {
+    text-align: center;
+}
+
+/*
+========================================
+    Utility Classes
+========================================
+*/
+
+
+.text-center {
+    text-align: center;
+}
+
+
+.text-grey {
+    color: var(--grey-text);
+}
+
+.mt-1 {
+    margin-top: 1rem;
+}
+
+/*
+========================================
+    Address List Page Styles
+========================================
+*/
+
+.page-header-with-action {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.address-item {
+    margin-bottom: 1rem;
+}
+
+.address-item-actions {
+    margin-top: 1rem;
+    display: flex;
+    gap: 1rem;
+}
+
+.address-item-actions .button {
+    flex: 1;
+}
+
+.address-item-form {
+    display: inline;
+}
+
+.address-list-footer {
+    margin-top: 2rem;
+}
+
+.address-field-label {
+    color: var(--grey-text);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/*
+========================================
+    Address Form Page Styles
+========================================
+*/
+
+.address-form-actions {
+    margin-top: 2rem;
+    display: flex;
+    gap: 1rem;
+}
+
+.address-form-actions .button {
+    flex: 1;
+}
+
+/*
+========================================
+    Checkout Form Error Styles
+========================================
+*/
+
+.checkout-field-error {
+    color: #ef4444;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
 }

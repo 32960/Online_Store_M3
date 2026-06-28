@@ -12,6 +12,7 @@ from orders.cart import get_cart, set_quantity, remove_from_cart, clear_cart, ge
 from orders.forms import CheckoutForm
 from orders.models import OrderItem, Order
 from products.models import Product
+from users.models import Address
 
 
 def get_cart_view(request):
@@ -73,17 +74,12 @@ class CheckoutView(LoginRequiredMixin, FormView):
     def get_initial(self):
         """Autofill form from user profile."""
         initial = super().get_initial()
-        user = self.request.user
-
-        if user.first_name:
-            initial['first_name'] = user.first_name
-        if user.last_name:
-            initial['last_name'] = user.last_name
-        if user.email:
-            initial['email'] = user.email
-        if user.phone:
-            initial['phone'] = user.phone
-
+        last_address = self.request.user.get_last_address()
+        if last_address:
+            initial['full_name'] = last_address.full_name
+            initial['phone'] = last_address.phone
+            initial['city'] = last_address.city
+            initial['shipping_address'] = last_address.shipping_address
         return initial
 
     def get(self, request, *args, **kwargs):
@@ -104,6 +100,14 @@ class CheckoutView(LoginRequiredMixin, FormView):
         except ValueError as exc:
             messages.error(self.request, str(exc))
             return redirect('orders:checkout')
+
+        Address.objects.create(
+            user=self.request.user,
+            full_name=order.full_name,
+            phone=order.phone,
+            city=order.city,
+            shipping_address=order.shipping_address,
+        )
 
         clear_cart(self.request)
         self.send_emails(order)

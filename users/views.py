@@ -1,22 +1,23 @@
 from django.contrib.auth import login, update_session_auth_hash
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.shortcuts import render, redirect
-from django.views.generic import UpdateView, DetailView, CreateView, FormView
+from django.views.generic import UpdateView, DetailView, CreateView, FormView, ListView, DeleteView
 from django.urls import reverse_lazy
 
 from django.contrib.auth import get_user_model
 from orders.models import Order
-from users.forms import EditProfileForm, CustomPasswordChangeForm, EmailAuthenticationForm, RegisterForm
+from users.models import Address
+from users.forms import EditProfileForm, CustomPasswordChangeForm, EmailAuthenticationForm, RegisterForm, AddressForm
+
 
 User = get_user_model()
 
 
 class RegisterView(CreateView):
-    """Регистрация нового пользователя."""
+    """New user registration."""
     form_class = RegisterForm
     template_name = 'users/register.html'
     success_url = reverse_lazy('products:product-list')
@@ -34,7 +35,7 @@ class RegisterView(CreateView):
 
 
 class CustomLoginView(LoginView):
-    """Вход в систему."""
+    """Log in."""
     template_name = 'users/login.html'
     authentication_form = EmailAuthenticationForm
 
@@ -50,7 +51,7 @@ class CustomLoginView(LoginView):
 
 
 class CustomLogoutView(LogoutView):
-    """Выход из системы."""
+    """Log out."""
     next_page = reverse_lazy('products:product-list')
 
     def dispatch(self, request, *args, **kwargs):
@@ -59,7 +60,7 @@ class CustomLogoutView(LogoutView):
 
 
 class AccountView(LoginRequiredMixin, DetailView):
-    """Личный кабинет с табами."""
+    """Personal account with tabs."""
     model = User
     template_name = 'users/account.html'
     context_object_name = 'profile_user'
@@ -67,15 +68,11 @@ class AccountView(LoginRequiredMixin, DetailView):
     def get_object(self, queryset=None):
         return self.request.user
 
-        context['orders'] = Order.objects.filter(user=self.request.user).order_by('-created_at')
-        context['total_orders'] = context['orders'].count()
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['profile_form'] = EditProfileForm(instance=self.request.user)
         context['password_form'] = CustomPasswordChangeForm(user=self.request.user)
 
-        # Пагинация для заказов (если активна вкладка orders)
         orders_list = Order.objects.filter(user=self.request.user).order_by('-created_at')
         paginator = Paginator(orders_list, 5)
         page_number = self.request.GET.get('page')
@@ -84,12 +81,14 @@ class AccountView(LoginRequiredMixin, DetailView):
         context['orders'] = page_obj
         context['total_orders'] = orders_list.count()
         context['active_tab'] = self.request.GET.get('tab', 'profile')
+        context['addresses'] = Address.objects.filter(user=self.request.user)
+        context['addresses_count'] = context['addresses'].count()
 
         return context
 
 
 class UpdateProfileView(LoginRequiredMixin, UpdateView):
-    """Обновление профиля."""
+    """Profile update."""
     model = User
     form_class = EditProfileForm
     template_name = 'users/account.html'
@@ -99,10 +98,8 @@ class UpdateProfileView(LoginRequiredMixin, UpdateView):
         return self.request.user
 
     def get_context_data(self, **kwargs):
-        """Добавляем все нужные данные в контекст."""
+        """Adding the necessary data to the context."""
         context = super().get_context_data(**kwargs)
-        # profile_form уже в context (это self.object)
-        # Добавляем остальные
         context['password_form'] = CustomPasswordChangeForm(user=self.request.user)
         context['orders'] = Order.objects.filter(user=self.request.user).order_by('-created_at')
         context['total_orders'] = context['orders'].count()
@@ -122,7 +119,7 @@ class UpdateProfileView(LoginRequiredMixin, UpdateView):
 
 
 class ChangePasswordView(LoginRequiredMixin, FormView):
-    """Смена пароля."""
+    """Change password."""
     form_class = CustomPasswordChangeForm
     template_name = 'users/account.html'
     success_url = reverse_lazy('users:account')
@@ -133,7 +130,7 @@ class ChangePasswordView(LoginRequiredMixin, FormView):
         return kwargs
 
     def get_context_data(self, **kwargs):
-        """Добавляем все нужные данные в контекст."""
+        """Adding the necessary data to the context."""
         context = super().get_context_data(**kwargs)
         context['profile_form'] = EditProfileForm(instance=self.request.user)
         context['orders'] = Order.objects.filter(user=self.request.user).order_by('-created_at')
@@ -153,3 +150,55 @@ class ChangePasswordView(LoginRequiredMixin, FormView):
 
     def get(self, request, *args, **kwargs):
         return redirect('users:account')
+
+
+class AddressListView(LoginRequiredMixin, ListView):
+    """User address list."""
+    model = Address
+    template_name = 'users/address_list.html'
+    context_object_name = 'addresses'
+
+    def get_queryset(self):
+        return Address.objects.filter(user=self.request.user)
+
+
+class AddressCreateView(LoginRequiredMixin, CreateView):
+    """Creating a new address."""
+    model = Address
+    form_class = AddressForm
+    template_name = 'users/address_form.html'
+    success_url = reverse_lazy('users:address-list')
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        messages.success(self.request, 'Address added successfully!')
+        return super().form_valid(form)
+
+
+class AddressUpdateView(LoginRequiredMixin, UpdateView):
+    """Editing the address."""
+    model = Address
+    form_class = AddressForm
+    template_name = 'users/address_form.html'
+    success_url = reverse_lazy('users:address-list')
+
+    def get_queryset(self):
+        return Address.objects.filter(user=self.request.user)
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Address updated successfully!')
+        return super().form_valid(form)
+
+
+class AddressDeleteView(LoginRequiredMixin, DeleteView):
+    """Deleting the address."""
+    model = Address
+    success_url = reverse_lazy('users:address-list')
+
+    def get_queryset(self):
+        return Address.objects.filter(user=self.request.user)
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, 'Address deleted successfully!')
+        return super().delete(request, *args, **kwargs)
+

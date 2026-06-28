@@ -6,6 +6,10 @@ from users.views import (
     AccountView,
     UpdateProfileView,
     ChangePasswordView,
+    AddressListView,
+    AddressCreateView,
+    AddressUpdateView,
+    AddressDeleteView,
 )
 from django.contrib.auth import views as auth_views
 from django.urls import reverse_lazy
@@ -51,4 +55,10 @@ urlpatterns = [
     path('account/', AccountView.as_view(), name='account'),
     path('account/update/', UpdateProfileView.as_view(), name='update-profile'),
     path('account/password/', ChangePasswordView.as_view(), name='change-password'),
+
+    # Адреса
+    path('account/addresses/', AddressListView.as_view(), name='address-list'),
+    path('account/addresses/add/', AddressCreateView.as_view(), name='address-create'),
+    path('account/addresses/<int:pk>/edit/', AddressUpdateView.as_view(), name='address-update'),
+    path('account/addresses/<int:pk>/delete/', AddressDeleteView.as_view(), name='address-delete'),
 ]

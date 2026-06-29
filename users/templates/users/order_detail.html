@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+Order #{{ order.id }} | {{ site_name }}
+{% endblock %}
+
+{% block content %}
+<main class="account-page-wrapper">
+  <div class="account-container">
+    <div class="page-header-with-action">
+      <h1 class="account-form-title">Order #{{ order.id }}</h1>
+      {% if can_cancel %}
+        <form method="post" action="{% url 'users:order-cancel' order.pk %}" class="address-item-form">
+          {% csrf_token %}
+          <button type="submit" class="button button--danger button--icon" onclick="return confirm('Are you sure you want to cancel this order?')">
+            <i class="fa-solid fa-xmark"></i>
+            <span>Cancel Order</span>
+          </button>
+        </form>
+      {% endif %}
+    </div>
+
+    <!-- Order information -->
+    <div class="account-form-container">
+      <h2 class="account-form-title">Order Information</h2>
+      <div class="order-info-grid">
+        <div class="order-info-item">
+          <span class="address-field-label">Status:</span>
+          <span class="order-status order-status--{{ order.status }}">{{ order.status|title }}</span>
+        </div>
+        <div class="order-info-item">
+          <span class="address-field-label">Date:</span>
+          <span>{{ order.created_at|date:"M d, Y H:i" }}</span>
+        </div>
+        <div class="order-info-item">
+          <span class="address-field-label">Total:</span>
+          <span class="order-total">${{ order.total_price }}</span>
+        </div>
+        <div class="order-info-item">
+          <span class="address-field-label">Payment:</span>
+          <span>{{ order.get_payment_method_display }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delivery address -->
+    <div class="account-form-container">
+      <h2 class="account-form-title">Shipping Information</h2>
+      <div class="order-info-grid">
+        <div class="order-info-item">
+          <span class="address-field-label">Recipient:</span>
+          <span>{{ order.full_name }}</span>
+        </div>
+        <div class="order-info-item">
+          <span class="address-field-label">Phone:</span>
+          <span>{{ order.phone }}</span>
+        </div>
+        <div class="order-info-item">
+          <span class="address-field-label">City:</span>
+          <span>{{ order.city }}</span>
+        </div>
+        <div class="order-info-item">
+          <span class="address-field-label">Address:</span>
+          <span>{{ order.shipping_address }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Items in the order -->
+    <div class="account-form-container">
+      <h2 class="account-form-title">Items ({{ items|length }})</h2>
+      <div class="order-items-list">
+        {% for item in items %}
+        <div class="order-item">
+          <div class="order-item__info">
+            <p class="order-item__name">{{ item.product.name }}</p>
+            <p class="order-item__meta">
+              <span class="address-field-label">Qty:</span> {{ item.quantity }} × ${{ item.price }}
+            </p>
+          </div>
+          <div class="order-item__total">
+            ${{ item.quantity|floatformat:0 }} × ${{ item.price }} = <strong>${{ item.total }}</strong>
+          </div>
+        </div>
+        {% empty %}
+          <p class="text-center text-grey">No items in this order.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Back button -->
+    <div class="address-list-footer">
+      <a href="{% url 'users:account' %}?tab=orders" class="button button--secondary button--icon">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span>Back to Orders</span>
+      </a>
+    </div>
+  </div>
+</main>
+{% endblock %}

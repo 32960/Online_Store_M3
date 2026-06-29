@@ -8,7 +8,7 @@ class CheckoutForm(forms.ModelForm):
     class Meta:
         model = Order
         fields = ['full_name', 'phone', 'city', 'shipping_address', 'payment_method']
-        required = ['full_name', 'phone', 'city', 'shipping_address', 'payment_method']
+        # required = ['full_name', 'phone', 'city', 'shipping_address', 'payment_method']
         widgets = {
             'shipping_address': forms.Textarea(attrs={'rows': 3, 'class': 'Textarea', 'placeholder': 'Lenina st., 18, apt. 9'}),
             'payment_method': forms.RadioSelect(attrs={'class': 'Input'}),

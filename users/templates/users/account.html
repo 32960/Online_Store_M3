@@ -122,40 +122,79 @@ My Account | {{ site_name }}
 
       <!-- Orders Tab -->
       {% if active_tab == 'orders' %}
-        <div class="tab-pane active">
-          {% if orders %}
-          <div class="order-history-table">
-            <div class="order-table-header">
-              <div>Order</div>
-              <div>Date</div>
-              <div>Total</div>
+      <div class="tab-pane active">
+        <!-- Filters form -->
+        <div class="account-form-container orders-filter-container">
+          <form method="get" action="{% url 'users:account' %}" class="orders-filter-form">
+            <input type="hidden" name="tab" value="orders">
+
+            <div class="orders-filter-fields">
+              <div class="checkout-form-group">
+                <label for="status">Status</label>
+                <select name="status" id="status" class="Input">
+                  <option value="">All statuses</option>
+                  {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>
+                      {{ label }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="checkout-form-group">
+                <label for="date_from">From</label>
+                <input type="date" name="date_from" id="date_from" class="Input" value="{{ date_from|default:'' }}">
+              </div>
+
+              <div class="checkout-form-group">
+                <label for="date_to">To</label>
+                <input type="date" name="date_to" id="date_to" class="Input" value="{{ date_to|default:'' }}">
+              </div>
             </div>
-            {% for order in orders %}
-            <div class="order-table-row">
-              <div class="order-table-cell">
-                <span>#{{ order.id }}</span>
-                <span class="order-date">{{ order.status|title }}</span>
-              </div>
-              <div class="order-table-cell">
-                <span>{{ order.created_at|date:"M d, Y" }}</span>
-              </div>
-              <div class="order-table-cell">
-                <span>${{ order.total_price }}</span>
-              </div>
+
+            <div class="orders-filter-actions">
+              <button type="submit" class="button button--primary button--icon">
+                <i class="fa-solid fa-filter"></i>
+                <span>Apply</span>
+              </button>
+              <a href="{% url 'users:account' %}?tab=orders" class="button button--secondary button--icon">
+                <i class="fa-solid fa-rotate-left"></i>
+                <span>Reset</span>
+              </a>
             </div>
-            {% endfor %}
-          </div>
-          {% else %}
-          <div class="account-form-container">
-            <p class="text-center text-grey">You have no orders yet.</p>
-            <a href="{% url 'products:product-list' %}" class="button button--primary mt-1">Start Shopping</a>
-          </div>
-          {% endif %}
+          </form>
         </div>
+
+        <!-- Orders table -->
+        {% if orders %}
+        <div class="order-history-table">
+          <div class="order-table-header">
+            <div>Order</div>
+            <div>Date</div>
+            <div>Total</div>
+          </div>
+          {% for order in orders %}
+          <div class="order-table-row">
+            <div class="order-table-cell">
+              <a href="{% url 'users:order-detail' order.pk %}" class="order-link">
+                #{{ order.id }}
+              </a>
+              <span class="order-date">{{ order.status|title }}</span>
+            </div>
+            <div class="order-table-cell">
+              <span>{{ order.created_at|date:"M d, Y" }}</span>
+            </div>
+            <div class="order-table-cell">
+              <span>${{ order.total_price }}</span>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
         {% if orders.has_other_pages %}
         <div class="account-pagination">
           {% if orders.has_previous %}
-            <a href="?tab=orders&page={{ orders.previous_page_number }}" class="pagination-link-account">← Previous</a>
+            <a href="?tab=orders{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}&page={{ orders.previous_page_number }}" class="pagination-link-account">← Previous</a>
           {% else %}
             <a class="pagination-link-account disabled">← Previous</a>
           {% endif %}
@@ -163,12 +202,19 @@ My Account | {{ site_name }}
           <span>Page {{ orders.number }} of {{ orders.paginator.num_pages }}</span>
 
           {% if orders.has_next %}
-            <a href="?tab=orders&page={{ orders.next_page_number }}" class="pagination-link-account">Next →</a>
+            <a href="?tab=orders{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}&page={{ orders.next_page_number }}" class="pagination-link-account">Next →</a>
           {% else %}
             <a class="pagination-link-account disabled">Next →</a>
           {% endif %}
         </div>
         {% endif %}
+        {% else %}
+        <div class="account-form-container">
+          <p class="text-center text-grey">You have no orders yet.</p>
+          <a href="{% url 'products:product-list' %}" class="button button--primary mt-1">Start Shopping</a>
+        </div>
+        {% endif %}
+      </div>
       {% endif %}
 
       <!-- Password Tab -->

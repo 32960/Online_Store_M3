@@ -35,6 +35,12 @@ class Address(JournalizedModel):
         ordering = ['-created_at']
         verbose_name = 'Address'
         verbose_name_plural = 'Addresses'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'full_name', 'phone', 'city', 'shipping_address'],
+                name='unique_user_address',
+            )
+        ]
 
     def __str__(self):
         return f'{self.full_name}, {self.city}, {self.shipping_address}'

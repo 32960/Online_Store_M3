@@ -1,39 +1,9 @@
 document.addEventListener('DOMContentLoaded', function() {
 
-//    // --- General logic for all pages (Login/Logout Simulation) ---
-//    const loginForm = document.getElementById('login-form');
-//    const logoutButton = document.getElementById('logout-button');
-//    function checkLoginStatus() {
-//        if (localStorage.getItem('isLoggedIn') === 'true') {
-//            document.body.classList.add('user-logged-in');
-//        } else {
-//            document.body.classList.remove('user-logged-in');
-//        }
-//    }
-//    if (loginForm) {
-//        loginForm.addEventListener('submit', function(e) {
-//            e.preventDefault();
-//            localStorage.setItem('isLoggedIn', 'true');
-//            const nextUrl = new URLSearchParams(window.location.search).get('next');
-//            window.location.href = nextUrl || 'home.html';
-//        });
-//    }
-//    if (logoutButton) {
-//        logoutButton.addEventListener('click', function(e) {
-//            e.preventDefault();
-//            localStorage.removeItem('isLoggedIn');
-//            window.location.href = 'home.html';
-//        });
-//    }
-//    checkLoginStatus();
-
-
     // --- Logic for the Main Page (home.html) ---
     const homePageContent = document.querySelector('.main-content-grid');
     if (homePageContent) {
-        // 1. Sort Options Logic (moved to django template)
-
-        // 2. Pagination Logic
+        // 1. Pagination Logic
         const paginationList = document.querySelector('.pagination-list');
         if (paginationList) {
             const paginationLinks = paginationList.querySelectorAll('.pagination__link');
@@ -46,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        // 3. Filter Logic (Keywords and Checkboxes)
+        // 2. Filter Logic (Keywords and Checkboxes)
         const checkboxes = document.querySelectorAll('.checkbox-group input[type="checkbox"]');
         const filterButton = document.querySelector('#filter-button');
 
@@ -64,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        // 4. Search Logic
+        // 3. Search Logic
         const searchInput = document.querySelector('.search-input');
         const searchBtn = document.querySelector('.search-button');
 
@@ -95,36 +65,10 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
-//        // "Add to Cart" Button and Counter
-//        const cartControls = document.querySelector('.cart-controls');
-//        if (cartControls) {
-//            const addToCartBtn = cartControls.querySelector('#add-to-cart-btn');
-//            const quantityCounter = cartControls.querySelector('#quantity-counter');
-//            const decreaseBtn = quantityCounter.querySelector('[data-action="decrease"]');
-//            const increaseBtn = quantityCounter.querySelector('[data-action="increase"]');
-//            const quantityValueSpan = quantityCounter.querySelector('.quantity-value');
-//            let quantity = 0;
-//            function updateView() {
-//                if (quantity === 0) {
-//                    addToCartBtn.classList.remove('is-hidden');
-//                    quantityCounter.classList.add('is-hidden');
-//                } else {
-//                    addToCartBtn.classList.add('is-hidden');
-//                    quantityCounter.classList.remove('is-hidden');
-//                    quantityValueSpan.textContent = `${quantity} in cart`;
-//                }
-//            }
-//            addToCartBtn.addEventListener('click', function() { quantity = 1; updateView(); });
-//            decreaseBtn.addEventListener('click', function() { if (quantity > 0) { quantity--; updateView(); } });
-//            increaseBtn.addEventListener('click', function() { quantity++; updateView(); });
-//            updateView();
-//        }
-//    }
 
     // --- Logic for Cart Page (cart.html) ---
     const cartPageContent = document.querySelector('.cart-page-wrapper');
     if (cartPageContent) {
-//        const cartItemsList = document.getElementById('cart-items-list');
         const cartTotalPriceElem = document.getElementById('cart-total-price');
         function updateCartTotal() {
             let total = 0;
@@ -139,30 +83,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         updateCartTotal();
     }
-//        if (cartItemsList) {
-//            cartItemsList.addEventListener('click', function(event) {
-//                const cartItem = event.target.closest('.cart-item');
-//                if (!cartItem) return;
-//                const quantityElem = cartItem.querySelector('.quantity-value-cart');
-//                const itemTotalElem = cartItem.querySelector('[data-item-total-price]');
-//                const basePrice = parseFloat(cartItem.dataset.price);
-//                let quantity = parseInt(quantityElem.textContent);
-//                if (event.target.closest('[data-action="increase"]')) {
-//                    quantity++;
-//                } else if (event.target.closest('[data-action="decrease"]')) {
-//                    quantity = quantity > 1 ? quantity - 1 : 0;
-//                }
-//                if (event.target.closest('[data-action="remove"]') || quantity === 0) {
-//                    cartItem.remove();
-//                } else {
-//                    quantityElem.textContent = quantity;
-//                    itemTotalElem.textContent = `$${(basePrice * quantity).toFixed(2)}`;
-//                }
-//                updateCartTotal();
-//            });
-//        }
-//        updateCartTotal();
-
 
     // --- Logic for Account and Admin Pages ---
     const accountAdminWrapper = document.querySelector('.account-page-wrapper, .admin-page-wrapper');

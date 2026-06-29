@@ -32,7 +32,7 @@
           </div>
 
           <div class="price-section">
-            <span class="price-tag">per 1 lb</span>
+            <span class="price-tag">{{ product.price_unit }}</span>
             <p class="product-price">{{ product.currency }}{{ product.price }}</p>
           </div>
         </div>
@@ -100,6 +100,7 @@
     </section>
 
     <!-- Technical Specifications Accordion -->
+    {% if product.specifications %}
     <section class="accordion-section">
       <div class="accordion-item">
         <div class="accordion-title">
@@ -108,18 +109,14 @@
         </div>
         <div class="accordion-content">
           <ul>
-            <li><strong>Origin:</strong> USA / Belgium</li>
-            <li><strong>Type:</strong> Crystal/Caramel Malt</li>
-            <li><strong>Color (°L):</strong> 60 °L</li>
-            <li><strong>Moisture:</strong> 5.0% max</li>
-            <li><strong>Extract FG, Dry:</strong> 75%</li>
-            <li><strong>Flavor Profile:</strong> Sweet, caramel, toffee, hints of toasted bread</li>
-            <li><strong>Usage:</strong> Typically 3-15% of the grist</li>
-            <li><strong>Recommended Beer Styles:</strong> Pale Ale, Amber Ale, IPA, Brown Ale, Porter, Stout, Scotch Ale</li>
+            {% for key, value in product.specifications.items %}
+            <li><strong>{{ key }}</strong> {{ value }}</li>
+            {% endfor %}
           </ul>
         </div>
       </div>
     </section>
+    {% endif %}
 
     <!-- Latest Reviews Section -->
     <section class="reviews-section">

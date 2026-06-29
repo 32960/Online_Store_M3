@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const checkboxes = document.querySelectorAll('.checkbox-group input[type="checkbox"]');
         const filterButton = document.querySelector('#filter-button');
 
-        if (checkboxes.length > 0) {
+        if (checkboxes.length > 0 && filterButton) {
             filterButton.addEventListener('click', function() {
                 let checked = [];
                 checkboxes.forEach(checkbox => {
@@ -61,37 +61,40 @@ document.addEventListener('DOMContentLoaded', function() {
                 const url = new URLSearchParams(window.location.search);
                 url.set('categories', checked.join(','));
                 window.location.search = url.toString();
-            })
+            });
         }
 
         // 4. Search Logic
         const searchInput = document.querySelector('.search-input');
         const searchBtn = document.querySelector('.search-button');
 
-        searchBtn.addEventListener('click', function() {
-            const q = searchInput.value;
-            const url = new URLSearchParams(window.location.search);
-            url.set('q', q);
-            window.location.search = url.toString();
-        });
+        if (searchBtn && searchInput) {
+            searchBtn.addEventListener('click', function() {
+                const q = searchInput.value;
+                const url = new URLSearchParams(window.location.search);
+                url.set('q', q);
+                window.location.search = url.toString();
+            });
 
-        searchInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                searchBtn.click();
-            }
-        });
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    searchBtn.click();
+                }
+            });
+        }
     }
 
     // --- Logic for Product Detail Pages (product-*.html) ---
-//    const productPageContent = document.querySelector('.page-product');
-//    if (productPageContent) {
-//        // Accordion
-//        const accordionTitle = document.querySelector('.accordion-title');
-//        if (accordionTitle) {
-//            accordionTitle.addEventListener('click', function() {
-//                this.closest('.accordion-item').classList.toggle('active');
-//            });
-//        }
+    const productPageContent = document.querySelector('.page-product');
+    if (productPageContent) {
+        // Accordion
+        const accordionTitles = document.querySelectorAll('.accordion-title');
+        accordionTitles.forEach(title => {
+            title.addEventListener('click', function() {
+                this.closest('.accordion-item').classList.toggle('active');
+            });
+        });
+    }
 //        // "Add to Cart" Button and Counter
 //        const cartControls = document.querySelector('.cart-controls');
 //        if (cartControls) {
@@ -121,18 +124,21 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Logic for Cart Page (cart.html) ---
     const cartPageContent = document.querySelector('.cart-page-wrapper');
     if (cartPageContent) {
-        const cartItemsList = document.getElementById('cart-items-list');
+//        const cartItemsList = document.getElementById('cart-items-list');
         const cartTotalPriceElem = document.getElementById('cart-total-price');
         function updateCartTotal() {
             let total = 0;
             document.querySelectorAll('.cart-item').forEach(item => {
-                const priceText = item.querySelector('[data-item-total-price]').textContent;
+                const priceText = item.querySelector('[data-item-total-price]')?.textContent;
                 if (priceText) {
                     total += parseFloat(priceText.replace('$', ''));
                 }
             });
             if (cartTotalPriceElem) cartTotalPriceElem.textContent = `$${total.toFixed(2)}`;
         }
+
+        updateCartTotal();
+    }
 //        if (cartItemsList) {
 //            cartItemsList.addEventListener('click', function(event) {
 //                const cartItem = event.target.closest('.cart-item');
@@ -156,7 +162,7 @@ document.addEventListener('DOMContentLoaded', function() {
 //            });
 //        }
 //        updateCartTotal();
-    }
+
 
     // --- Logic for Account and Admin Pages ---
     const accountAdminWrapper = document.querySelector('.account-page-wrapper, .admin-page-wrapper');
@@ -208,7 +214,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         placeholder.style.backgroundImage = `url('${e.target.result}')`;
                         placeholder.style.backgroundSize = 'cover';
                         placeholder.style.backgroundPosition = 'center';
-                    }
+                    };
                     reader.readAsDataURL(file);
                 }
             });
@@ -218,52 +224,52 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Logic for Reviews Page ---
     const starRating = document.getElementById('star-rating');
 
-    if (!starRating) return;
+    if (starRating) {
+        const stars = starRating.querySelectorAll('.star-label');
+        const radios = starRating.querySelectorAll('.star-radio');
 
-    const stars = starRating.querySelectorAll('.star-label');
-    const radios = starRating.querySelectorAll('.star-radio');
+        let currentRating = 0;
 
-    let currentRating = 0;
+        function updateStars(rating) {
+            stars.forEach((star, index) => {
+                const icon = star.querySelector('i');
+                if (index < rating) {
+                    icon.className = 'fa-solid fa-star';
+                    icon.style.color = '#fbbf24';
+                } else {
+                    icon.className = 'fa-regular fa-star';
+                    icon.style.color = '#d1d5db';
+                }
+            });
+        }
 
-    function updateStars(rating) {
-        stars.forEach((star, index) => {
-            const icon = star.querySelector('i');
-            if (index < rating) {
-                icon.className = 'fa-solid fa-star';
-                icon.style.color = '#fbbf24';
-            } else {
-                icon.className = 'fa-regular fa-star';
-                icon.style.color = '#d1d5db';
-            }
+        stars.forEach(star => {
+            star.addEventListener('click', function(e) {
+                e.preventDefault();
+                const rating = parseInt(this.dataset.rating);
+                const radio = document.getElementById(`star-${rating}`);
+                if (radio) radio.checked = true;
+                currentRating = rating;
+                updateStars(rating);
+            });
+
+            star.addEventListener('mouseenter', function() {
+                const rating = parseInt(this.dataset.rating);
+                updateStars(rating);
+            });
+
+            star.addEventListener('mouseleave', function() {
+                updateStars(currentRating);
+            });
         });
-    }
 
-    stars.forEach(star => {
-        star.addEventListener('click', function(e) {
-            e.preventDefault();
-            const rating = parseInt(this.dataset.rating);
-            const radio = document.getElementById(`star-${rating}`);
-            radio.checked = true;
-            currentRating = rating;
-            updateStars(rating);
-        });
-
-        star.addEventListener('mouseenter', function() {
-            const rating = parseInt(this.dataset.rating);
-            updateStars(rating);
-        });
-
-        star.addEventListener('mouseleave', function() {
+        const checkedRadio = document.querySelector('.star-radio:checked');
+        if (checkedRadio) {
+            currentRating = parseInt(checkedRadio.value);
             updateStars(currentRating);
-        });
-    });
-
-    const checkedRadio = document.querySelector('.star-radio:checked');
-    if (checkedRadio) {
-        currentRating = parseInt(checkedRadio.value);
-        updateStars(currentRating);
-    } else {
-        currentRating = 0;
-        updateStars(0);
+        } else {
+            currentRating = 0;
+            updateStars(0);
+        }
     }
 });

@@ -24,6 +24,20 @@ class Product(JournalizedModel):
     is_active = models.BooleanField(default=True)
     stock = models.PositiveIntegerField(default=0)
     rating = models.DecimalField(max_digits=3, decimal_places=1, default=0.0)
+    price_unit = models.CharField(
+        max_length=50,
+        default='per 1 lb',
+        blank=True,
+        verbose_name='Price unit of measurement',
+        help_text='For example: per 1 lb, per 100g, per pouch'
+    )
+
+    specifications = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name='Technical specifications',
+        help_text='Format JSON: {"Origin": "USA", "Type": "Dual-Purpose", ...}'
+    )
 
     def __str__(self):
         return self.name

@@ -22,6 +22,16 @@ class ProductAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
     actions = [deactivate_products, activate_products]
 
+    fieldsets = (
+        ('Basic information', {
+            'fields': ('name', 'slug', 'category', 'description', 'price', 'stock', 'image', 'is_active')
+        }),
+        ('Additional information', {
+            'fields': ('price_unit', 'specifications'),
+            'classes': ('collapse',),
+        }),
+    )
+
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ('name', 'slug', 'parent', 'created_at', 'updated_at')

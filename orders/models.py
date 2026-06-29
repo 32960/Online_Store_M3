@@ -56,16 +56,17 @@ class Order(JournalizedModel):
         self.total_price = total_price
         self.save(update_fields=['total_price', 'updated_at'])
 
-    @property
-    def total(self):
-        """Total cost of the item."""
-        return self.quantity * self.price
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey('products.Product', on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
+
+    @property
+    def total(self):
+        """Total cost of the item."""
+        return self.quantity * self.price
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)

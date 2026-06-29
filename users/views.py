@@ -8,7 +8,7 @@ from django.views.generic import UpdateView, DetailView, CreateView, FormView, L
 from django.urls import reverse_lazy
 
 from django.contrib.auth import get_user_model
-from orders.models import Order, OrderItem
+from orders.models import Order
 from users.models import Address
 from users.forms import EditProfileForm, CustomPasswordChangeForm, EmailAuthenticationForm, RegisterForm, AddressForm
 
@@ -121,6 +121,7 @@ class UpdateProfileView(LoginRequiredMixin, UpdateView):
     def get_context_data(self, **kwargs):
         """Adding the necessary data to the context."""
         context = super().get_context_data(**kwargs)
+        context['profile_form'] = context['form']
         context['password_form'] = CustomPasswordChangeForm(user=self.request.user)
         context['orders'] = Order.objects.filter(user=self.request.user).order_by('-created_at')
         context['total_orders'] = context['orders'].count()
@@ -156,6 +157,7 @@ class ChangePasswordView(LoginRequiredMixin, FormView):
         """Adding the necessary data to the context."""
         context = super().get_context_data(**kwargs)
         context['profile_form'] = EditProfileForm(instance=self.request.user)
+        context['password_form'] = context['form']
         context['orders'] = Order.objects.filter(user=self.request.user).order_by('-created_at')
         context['total_orders'] = context['orders'].count()
         context['active_tab'] = 'password'

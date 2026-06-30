@@ -189,6 +189,7 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [permissions.AllowAny]
+    ordering = ['name']
 
 
 @extend_schema(tags=['Orders'])

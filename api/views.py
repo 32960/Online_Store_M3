@@ -1,3 +1,14 @@
+"""
+API views for the Hop & Barley online store.
+
+This module provides REST API endpoints for:
+- Products catalog (read-only)
+- Categories (read-only)
+- Orders management (CRUD with JWT authentication)
+- Shopping cart operations
+- Product reviews
+- User registration and JWT authentication
+"""
 from api.serializers import ProductListSerializer, ProductDetailSerializer, CategorySerializer, OrderSerializer, \
     RegisterSerializer, CartItemSerializer, CartSerializer, ReviewSerializer
 
@@ -40,8 +51,24 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ViewSet for viewing products.
 
-    list: Return a list of all active products.
-    retrieve: Return details of a specific product.
+    Provides read-only access to the product catalog with filtering,
+    searching, and ordering capabilities.
+
+    Attributes:
+        queryset: Base queryset for all products.
+        serializer_class: Default serializer for list view.
+        filter_backends: List of filter backends (Django filters, search, ordering).
+        filterset_fields: Fields available for filtering.
+        search_fields: Fields available for search.
+        ordering_fields: Fields available for ordering.
+        permission_classes: Permission classes (AllowAny for public access).
+
+    Examples:
+        GET /api/products/ - List all active products
+        GET /api/products/?category__slug=malt - Filter by category
+        GET /api/products/?search=citra - Search in name/description
+        GET /api/products/?ordering=-price - Order by price descending
+        GET /api/products/{slug}/ - Retrieve product details
     """
     queryset = Product.objects.all()
     serializer_class = ProductListSerializer
@@ -61,11 +88,25 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self) -> QuerySet[Product]:
-        """Return active products with related category."""
+        """
+        Return active products with related category.
+
+        Returns:
+            QuerySet[Product]: Filtered queryset of active products
+                with prefetched category data.
+        """
         queryset = super().get_queryset()
         return queryset.filter(is_active=True).select_related('category')
 
     def get_serializer_class(self) -> type[ProductListSerializer | ProductDetailSerializer]:
+        """
+        Return appropriate serializer class based on action.
+
+        Returns:
+            type[ProductListSerializer | ProductDetailSerializer]:
+                ProductListSerializer for list action,
+                ProductDetailSerializer for retrieve action.
+        """
         if self.action == 'list':
             return ProductListSerializer
         return ProductDetailSerializer
@@ -114,13 +155,37 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         ]
     )
 
-    def list(self, request, *args, **kwargs):
+    def list(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        """
+        List all active products with filtering, searching, and ordering.
+
+        Args:
+            request: HTTP request object.
+            *args: Additional positional arguments.
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            Response: Paginated list of products with metadata.
+        """
         return super().list(request, *args, **kwargs)
 
 
 @extend_schema(tags=['Categories'])
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
-    """ViewSet for viewing product categories."""
+    """
+    ViewSet for viewing product categories.
+
+    Provides read-only access to the category hierarchy.
+
+    Attributes:
+        queryset: Base queryset for all categories.
+        serializer_class: Serializer for category data.
+        permission_classes: Permission classes (AllowAny for public access).
+
+    Examples:
+        GET /api/categories/ - List all categories
+        GET /api/categories/{id}/ - Retrieve category details
+    """
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [permissions.AllowAny]
@@ -131,14 +196,26 @@ class OrderViewSet(viewsets.ModelViewSet):
     """
     ViewSet for managing orders.
 
-    Requires JWT authentication. Users can only see their own orders.
+    Provides full CRUD operations for orders with JWT authentication.
+    Users can only see and manage their own orders.
     Staff users can see all orders.
 
-    create: Create a new order.
-    list: List user's orders.
-    retrieve: Get order details.
-    update: Update order (limited by status).
-    destroy: Cancel order (only if status is 'pending' or 'paid').
+    Attributes:
+        queryset: Base queryset for all orders.
+        serializer_class: Serializer for order data.
+        filter_backends: List of filter backends.
+        filterset_fields: Fields available for filtering.
+        search_fields: Fields available for search.
+        ordering_fields: Fields available for ordering.
+        authentication_classes: Authentication classes (JWT and Session).
+        permission_classes: Permission classes (IsAuthenticated).
+
+    Examples:
+        GET /api/orders/ - List user's orders
+        POST /api/orders/ - Create new order
+        GET /api/orders/{id}/ - Retrieve order details
+        PUT /api/orders/{id}/ - Update order
+        DELETE /api/orders/{id}/ - Cancel order
     """
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
@@ -151,7 +228,16 @@ class OrderViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self) -> QuerySet[Order]:
-        """Return orders with prefetched items and products."""
+        """
+        Return orders with prefetched items and products.
+
+        For staff users, returns all orders.
+        For regular users, returns only their own orders.
+
+        Returns:
+            QuerySet[Order]: Filtered queryset with prefetched related data.
+        """
+
         user = self.request.user
         queryset = Order.objects.prefetch_related('items__product')
         if user.is_staff:
@@ -159,7 +245,15 @@ class OrderViewSet(viewsets.ModelViewSet):
         return queryset.filter(user=user)
 
     def perform_destroy(self, instance: Order) -> None:
-        """Cancel order and restore product stock."""
+        """
+        Cancel order and restore product stock.
+
+        Args:
+            instance: Order instance to cancel.
+
+        Raises:
+            ValidationError: If order status is 'shipped', 'delivered', or 'cancelled'.
+        """
         if instance.status in {'shipped', 'delivered', 'cancelled'}:
             raise ValidationError('This order cannot be cancelled.')
 
@@ -198,7 +292,21 @@ class OrderViewSet(viewsets.ModelViewSet):
             ),
         ]
     )
-    def create(self, request, *args, **kwargs):
+    def create(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        """
+        Create a new order.
+
+        Args:
+            request: HTTP request object with order data.
+            *args: Additional positional arguments.
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            Response: Created order data with status 201.
+
+        Raises:
+            ValidationError: If order data is invalid or stock is insufficient.
+        """
         return super().create(request, *args, **kwargs)
 
 
@@ -207,7 +315,19 @@ class RegisterView(CreateAPIView):
     """
     Register a new user.
 
-    Returns user data on successful registration.
+    Provides user registration endpoint with automatic password hashing.
+
+    Attributes:
+        serializer_class: Serializer for registration data.
+        permission_classes: Permission classes (AllowAny for public access).
+
+    Examples:
+        POST /api/users/register/ - Register new user
+        {
+            "username": "john_doe",
+            "email": "john@example.com",
+            "password": "secure_password"
+        }
     """
     serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
@@ -221,16 +341,35 @@ class CartAPIView(APIView):
     """
     Shopping cart endpoint.
 
-    GET: Retrieve cart contents.
-    POST: Add item to cart.
-    PATCH: Update item quantity.
-    DELETE: Remove item or clear cart.
+    Provides cart management operations with support for both JWT
+    and session authentication. Cart data is stored in session.
+
+    Attributes:
+        serializer_class: Serializer for cart response.
+        authentication_classes: Authentication classes (JWT and Session).
+        permission_classes: Permission classes (AllowAny for guest access).
+
+    Examples:
+        GET /api/cart/ - Retrieve cart contents
+        POST /api/cart/ - Add item to cart
+        PATCH /api/cart/ - Update item quantity
+        DELETE /api/cart/ - Remove item or clear cart
     """
+
     serializer_class = CartSerializer
     authentication_classes = [JWTAuthentication, SessionAuthentication]
     permission_classes = [permissions.AllowAny]
 
     def get(self, request: Request) -> Response:
+        """
+        Retrieve cart contents.
+
+        Args:
+            request: HTTP request object.
+
+        Returns:
+            Response: Cart data with items and total price.
+        """
         return Response(self.get_cart_payload(request))
 
     @extend_schema(
@@ -245,6 +384,18 @@ class CartAPIView(APIView):
         ]
     )
     def post(self, request: Request) -> Response:
+        """
+        Add item to cart or update quantity if already exists.
+
+        Args:
+            request: HTTP request object with product ID and quantity.
+
+        Returns:
+            Response: Updated cart data with status 201.
+
+        Raises:
+            ValidationError: If product doesn't exist or stock is insufficient.
+        """
         serializer = CartItemSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         product = serializer.validated_data['product']
@@ -269,6 +420,18 @@ class CartAPIView(APIView):
         ]
     )
     def patch(self, request: Request) -> Response:
+        """
+        Update item quantity in cart.
+
+        Args:
+            request: HTTP request object with product ID and new quantity.
+
+        Returns:
+            Response: Updated cart data.
+
+        Raises:
+            ValidationError: If product doesn't exist or stock is insufficient.
+        """
         serializer = CartItemSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         product = serializer.validated_data['product']
@@ -290,6 +453,15 @@ class CartAPIView(APIView):
         responses=CartSerializer,
     )
     def delete(self, request: Request) -> Response:
+        """
+        Remove item from cart or clear entire cart.
+
+        Args:
+            request: HTTP request object with optional product ID.
+
+        Returns:
+            Response: Updated cart data.
+        """
         product_id = (
             request.data.get('product')
             or request.query_params.get('product')
@@ -303,7 +475,27 @@ class CartAPIView(APIView):
 
     @staticmethod
     def get_cart_payload(request: Request) -> dict[str, Any]:
-        """Return cart payload with price change warnings."""
+        """
+        Return cart payload with price change warnings.
+
+        Compares current product prices with session-stored prices
+        and includes warnings if prices have changed.
+
+        Args:
+            request: HTTP request object.
+
+        Returns:
+            dict[str, Any]: Cart data with items and total price.
+                Each item includes:
+                - product: Product ID
+                - name: Product name
+                - price: Current price
+                - quantity: Quantity in cart
+                - subtotal: Total for this item
+                - stock: Available stock
+                - price_changed: Boolean flag if price changed
+                - old_price: Previous price (if changed)
+        """
         cart = get_cart(request)
         items = []
 
@@ -337,13 +529,29 @@ class ProductReviewView(CreateAPIView):
     """
     Product reviews endpoint.
 
-    GET: List reviews for a product (public).
-    POST: Create a review (requires authentication and purchase).
+    Provides public read access and authenticated write access
+    to product reviews. Users can only review products they've purchased.
+
+    Attributes:
+        serializer_class: Serializer for review data.
+        authentication_classes: Authentication classes (JWT and Session).
+
+    Examples:
+        GET /api/products/{id}/reviews/ - List product reviews
+        POST /api/products/{id}/reviews/ - Create review (authenticated)
     """
     serializer_class = ReviewSerializer
     authentication_classes = [JWTAuthentication, SessionAuthentication]
 
     def get_permissions(self) -> list[permissions.BasePermission]:
+        """
+        Return permission classes based on request method.
+
+        GET requests are public, other methods require authentication.
+
+        Returns:
+            list[permissions.BasePermission]: List of permission instances.
+        """
         if self.request.method == 'GET':
             return [permissions.AllowAny()]
         return [permissions.IsAuthenticated()]
@@ -353,6 +561,16 @@ class ProductReviewView(CreateAPIView):
         description='List all reviews for a specific product.'
     )
     def get(self, request: Request, product_id: int) -> Response:
+        """
+        List all reviews for a specific product.
+
+        Args:
+            request: HTTP request object.
+            product_id: ID of the product.
+
+        Returns:
+            Response: List of reviews with user information.
+        """
         queryset = Review.objects.filter(
             product_id=product_id,
         ).select_related('user')
@@ -378,7 +596,16 @@ class ProductReviewView(CreateAPIView):
         ]
     )
     def perform_create(self, serializer: ReviewSerializer) -> None:
-        """Create a review, ensuring user hasn't reviewed this product before."""
+        """
+        Create a review, ensuring user hasn't reviewed this product before.
+
+        Args:
+            serializer: Review serializer instance.
+
+        Raises:
+            ValidationError: If user has already reviewed this product.
+            PermissionDenied: If user has not purchased this product.
+        """
         with transaction.atomic():
             product = Product.objects.select_for_update().get(
                 id=self.kwargs['product_id'],
@@ -387,7 +614,7 @@ class ProductReviewView(CreateAPIView):
 
             can_review, error_message = user_can_review(self.request.user, product)
             if not can_review:
-                if 'already reviewed' in error_message:
+                if error_message and 'already reviewed' in error_message:
                     raise ValidationError(error_message)
                 else:
                     raise PermissionDenied(error_message)

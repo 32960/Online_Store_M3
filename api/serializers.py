@@ -10,6 +10,7 @@ from django.db import transaction
 from reviews.models import Review
 
 class CategorySerializer(serializers.ModelSerializer):
+    """Serializer for Category model."""
     class Meta:
         model = Category
         fields = ['id', 'name', 'slug', 'parent', 'created_at', 'updated_at']
@@ -17,6 +18,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class ProductListSerializer(serializers.ModelSerializer):
+    """Serializer for product list view. Contains basic product info."""
     class Meta:
         model = Product
         fields = [
@@ -28,6 +30,7 @@ class ProductListSerializer(serializers.ModelSerializer):
 
 
 class ProductDetailSerializer(serializers.ModelSerializer):
+    """Serializer for product detail view. Includes image, currency and nested category."""
     category = CategorySerializer(read_only=True)
 
     class Meta:
@@ -39,6 +42,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
+    """Serializer for order items."""
     class Meta:
         model = OrderItem
         fields = ['id', 'product', 'quantity', 'price']
@@ -46,6 +50,12 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
+    """
+    Serializer for Order model.
+
+    Includes nested order items and user info.
+    Validates stock availability and order status transitions.
+    """
     items = OrderItemSerializer(many=True)
     user = serializers.StringRelatedField(read_only=True)
 
@@ -163,6 +173,11 @@ class OrderSerializer(serializers.ModelSerializer):
 
 
 class RegisterSerializer(serializers.ModelSerializer):
+    """
+    Serializer for user registration.
+
+    Password is write-only and hashed automatically.
+    """
     class Meta:
         model = get_user_model()
         fields = ['id', 'username', 'email', 'password']
@@ -174,6 +189,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 
 class CartItemSerializer(serializers.Serializer):
+    """Serializer for cart item operations (add/update)."""
     product = serializers.PrimaryKeyRelatedField(
         queryset=Product.objects.filter(is_active=True)
     )
@@ -188,10 +204,16 @@ class CartItemSerializer(serializers.Serializer):
 
 
 class CartSerializer(serializers.Serializer):
+    """Serializer for cart response."""
     items = CartItemSerializer(many=True)
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+    """
+    Serializer for product reviews.
+
+    User and product are set automatically from request context.
+    """
     user = serializers.StringRelatedField(read_only=True)
 
     class Meta:

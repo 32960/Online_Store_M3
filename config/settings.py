@@ -140,7 +140,65 @@ SIMPLE_JWT = {
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Hop & Barley API',
-    'DESCRIPTION': 'REST API for products, orders, cart, users, and reviews.',
+    'DESCRIPTION': '''
+    REST API for Hop & Barley online store.
+
+    ## Authentication
+
+    This API uses **JWT (JSON Web Token)** authentication.
+
+    ### How to authenticate:
+
+    1. **Obtain tokens** — POST to `/api/users/login/` with your credentials:
+       ```json
+       {
+         "username": "your_username",
+         "password": "your_password"
+       }
+       ```
+       Response:
+       ```json
+       {
+         "access": "eyJ0eXAiOiJKV1QiLCJhbGc...",
+         "refresh": "eyJ0eXAiOiJKV1QiLCJhbGc..."
+       }
+       ```
+
+    2. **Use access token** — Add to request headers:
+       ```
+       Authorization: Bearer <your_access_token>
+       ```
+
+    3. **Refresh token** — POST to `/api/users/refresh/` when access expires:
+       ```json
+       {
+         "refresh": "your_refresh_token"
+       }
+       ```
+
+    ### Token lifetime:
+    - **Access token**: 60 minutes
+    - **Refresh token**: 1 day
+
+    ### Alternative: Session Authentication
+    For browser-based requests, session authentication is also supported.
+    ''',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SERVE_PERMISSIONS': ['rest_framework.permissions.AllowAny'],
+    'SWAGGER_UI_SETTINGS': {
+        'deepLinking': True,
+        'persistAuthorization': True,
+        'displayOperationId': True,
+    },
+    'SCHEMA_PATH_PREFIX': '/api/',
+    'TAGS': [
+        {'name': 'Products', 'description': 'Product catalog operations'},
+        {'name': 'Categories', 'description': 'Product categories'},
+        {'name': 'Orders', 'description': 'Order management (requires authentication)'},
+        {'name': 'Cart', 'description': 'Shopping cart operations'},
+        {'name': 'Reviews', 'description': 'Product reviews'},
+        {'name': 'Authentication', 'description': 'JWT authentication endpoints'},
+    ],
 }

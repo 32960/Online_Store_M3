@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path
 from rest_framework import routers
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
 from api.views import ProductViewSet, CategoryViewSet, OrderViewSet, RegisterView, CartAPIView, ProductReviewView
 
@@ -22,6 +22,7 @@ urlpatterns = router.urls + [
         SpectacularSwaggerView.as_view(url_name='api:schema'),
         name='docs',
     ),
+    path('redoc/', SpectacularRedocView.as_view(url_name='api:schema'), name='redoc'),
     path('users/login/', TokenObtainPairView.as_view(), name='login'),
     path('users/refresh/', TokenRefreshView.as_view(), name='refresh'),
     path('users/register/', RegisterView.as_view(), name='register'),

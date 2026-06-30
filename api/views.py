@@ -32,8 +32,17 @@ from reviews.services import user_can_review
 
 from typing import Any
 
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample, OpenApiResponse
+from drf_spectacular.types import OpenApiTypes
 
+@extend_schema(tags=['Products'])
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet for viewing products.
+
+    list: Return a list of all active products.
+    retrieve: Return details of a specific product.
+    """
     queryset = Product.objects.all()
     serializer_class = ProductListSerializer
     filter_backends = [
@@ -61,14 +70,76 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             return ProductListSerializer
         return ProductDetailSerializer
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='category__slug',
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                description='Filter by category slug',
+                examples=[
+                    OpenApiExample('Malt', value='malt'),
+                    OpenApiExample('Hops', value='hops'),
+                ]
+            ),
+            OpenApiParameter(
+                name='price__gte',
+                type=OpenApiTypes.FLOAT,
+                location=OpenApiParameter.QUERY,
+                description='Minimum price',
+            ),
+            OpenApiParameter(
+                name='price__lte',
+                type=OpenApiTypes.FLOAT,
+                location=OpenApiParameter.QUERY,
+                description='Maximum price',
+            ),
+            OpenApiParameter(
+                name='search',
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                description='Search in name, description, slug',
+            ),
+            OpenApiParameter(
+                name='ordering',
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                description='Order by field (prefix with - for descending)',
+                examples=[
+                    OpenApiExample('Price ascending', value='price'),
+                    OpenApiExample('Price descending', value='-price'),
+                    OpenApiExample('Rating', value='-rating'),
+                ]
+            ),
+        ]
+    )
 
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+
+@extend_schema(tags=['Categories'])
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for viewing product categories."""
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [permissions.AllowAny]
 
 
+@extend_schema(tags=['Orders'])
 class OrderViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing orders.
+
+    Requires JWT authentication. Users can only see their own orders.
+    Staff users can see all orders.
+
+    create: Create a new order.
+    list: List user's orders.
+    retrieve: Get order details.
+    update: Update order (limited by status).
+    destroy: Cancel order (only if status is 'pending' or 'paid').
+    """
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -102,15 +173,59 @@ class OrderViewSet(viewsets.ModelViewSet):
             instance.status = 'cancelled'
             instance.save(update_fields=['status', 'updated_at'])
 
+    @extend_schema(
+        request=OrderSerializer,
+        responses={
+            201: OrderSerializer,
+            400: OpenApiResponse(description='Validation error'),
+        },
+        tags=['Orders'],
+        examples=[
+            OpenApiExample(
+                'Create Order',
+                value={
+                    'full_name': 'John Doe',
+                    'phone': '+1234567890',
+                    'city': 'New York',
+                    'shipping_address': '123 Main St',
+                    'payment_method': 'debit',
+                    'items': [
+                        {'product': 1, 'quantity': 2},
+                        {'product': 3, 'quantity': 1},
+                    ]
+                },
+                request_only=True,
+            ),
+        ]
+    )
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
 
+
+@extend_schema(tags=['Authentication'])
 class RegisterView(CreateAPIView):
+    """
+    Register a new user.
+
+    Returns user data on successful registration.
+    """
     serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
 
 
+@extend_schema(
+    tags=['Cart'],
+    description='Shopping cart operations. Supports both JWT and session authentication.',
+)
 class CartAPIView(APIView):
-    """Session cart endpoint usable with either JWT or browser sessions."""
+    """
+    Shopping cart endpoint.
 
+    GET: Retrieve cart contents.
+    POST: Add item to cart.
+    PATCH: Update item quantity.
+    DELETE: Remove item or clear cart.
+    """
     serializer_class = CartSerializer
     authentication_classes = [JWTAuthentication, SessionAuthentication]
     permission_classes = [permissions.AllowAny]
@@ -118,6 +233,17 @@ class CartAPIView(APIView):
     def get(self, request: Request) -> Response:
         return Response(self.get_cart_payload(request))
 
+    @extend_schema(
+        request=CartItemSerializer,
+        responses=CartSerializer,
+        examples=[
+            OpenApiExample(
+                'Add to Cart',
+                value={'product': 1, 'quantity': 2},
+                request_only=True,
+            ),
+        ]
+    )
     def post(self, request: Request) -> Response:
         serializer = CartItemSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -131,6 +257,17 @@ class CartAPIView(APIView):
             status=status.HTTP_201_CREATED,
         )
 
+    @extend_schema(
+        request=CartItemSerializer,
+        responses=CartSerializer,
+        examples=[
+            OpenApiExample(
+                'Update Quantity',
+                value={'product': 1, 'quantity': 5},
+                request_only=True,
+            ),
+        ]
+    )
     def patch(self, request: Request) -> Response:
         serializer = CartItemSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -141,6 +278,17 @@ class CartAPIView(APIView):
             raise ValidationError(message)
         return Response(self.get_cart_payload(request))
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='product',
+                type=OpenApiTypes.INT,
+                location=OpenApiParameter.QUERY,
+                description='Product ID to remove. If omitted, clears entire cart.',
+            ),
+        ],
+        responses=CartSerializer,
+    )
     def delete(self, request: Request) -> Response:
         product_id = (
             request.data.get('product')
@@ -184,7 +332,14 @@ class CartAPIView(APIView):
         }
 
 
+@extend_schema(tags=['Reviews'])
 class ProductReviewView(CreateAPIView):
+    """
+    Product reviews endpoint.
+
+    GET: List reviews for a product (public).
+    POST: Create a review (requires authentication and purchase).
+    """
     serializer_class = ReviewSerializer
     authentication_classes = [JWTAuthentication, SessionAuthentication]
 
@@ -193,6 +348,10 @@ class ProductReviewView(CreateAPIView):
             return [permissions.AllowAny()]
         return [permissions.IsAuthenticated()]
 
+    @extend_schema(
+        responses=ReviewSerializer(many=True),
+        description='List all reviews for a specific product.'
+    )
     def get(self, request: Request, product_id: int) -> Response:
         queryset = Review.objects.filter(
             product_id=product_id,
@@ -200,6 +359,24 @@ class ProductReviewView(CreateAPIView):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
+    @extend_schema(
+        request=ReviewSerializer,
+        responses={
+            201: ReviewSerializer,
+            400: OpenApiResponse(description='Already reviewed or other validation error'),
+            403: OpenApiResponse(description='User has not purchased this product'),
+        },
+        examples=[
+            OpenApiExample(
+                'Create Review',
+                value={
+                    'rating': 5,
+                    'comment': 'Excellent product! Highly recommended.',
+                },
+                request_only=True,
+            ),
+        ]
+    )
     def perform_create(self, serializer: ReviewSerializer) -> None:
         """Create a review, ensuring user hasn't reviewed this product before."""
         with transaction.atomic():

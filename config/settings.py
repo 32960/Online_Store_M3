@@ -8,11 +8,15 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-change-me-in-production')
 
 DEBUG = os.getenv('DEBUG') == 'True'
 
-ALLOWED_HOSTS: list[str] = []
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,0.0.0.0').split(',')
+    if host.strip()
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -96,10 +100,10 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'  # FOR PRODUCTION / DOCKER
 STATICFILES_DIRS = [
-    BASE_DIR / 'static', # NOT IN PRODUCTION
+    BASE_DIR / 'static',  # FOR DEVELOPMENT
 ]
-# STATIC_ROOT = BASE_DIR / 'static' # IN PRODUCTION (after collectstatic)
 
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'

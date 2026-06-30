@@ -1,18 +1,47 @@
 services:
   db:
     image: postgres:17-alpine
+    container_name: hop_barley_db
+    restart: unless-stopped
     env_file:
       - '.env'
     volumes:
       - db_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-hop_barley_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     ports:
-      - '5432:5432'
+      - ${POSTGRES_PORT:-5432}:5432
     healthcheck:
-      test: 'pg_isready -U ${POSTGRES_USER}'
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
       timeout: 5s
       retries: 3
-    restart: always
+
+  web:
+    build: .
+    container_name: hop_barley_web
+    restart: unless-stopped
+    command: >
+      sh -c "
+        python manage.py migrate --noinput &&
+        python manage.py runserver 0.0.0.0:8000
+      "
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_HOST=db
+      - ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0,web
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   db_data:
+  static_volume:

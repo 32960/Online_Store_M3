@@ -46,6 +46,7 @@ from typing import Any
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample, OpenApiResponse
 from drf_spectacular.types import OpenApiTypes
 
+
 @extend_schema(tags=['Products'])
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     """
@@ -541,6 +542,7 @@ class ProductReviewView(CreateAPIView):
         GET /api/products/{id}/reviews/ - List product reviews
         POST /api/products/{id}/reviews/ - Create review (authenticated)
     """
+    queryset = Product.objects.none()
     serializer_class = ReviewSerializer
     authentication_classes = [JWTAuthentication, SessionAuthentication]
 

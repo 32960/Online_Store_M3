@@ -9,13 +9,12 @@ This module provides views for:
 
 All views support both authenticated and anonymous users where appropriate.
 """
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import get_user_model
 from django.db.models import Q, F, Sum, Count, ExpressionWrapper, DecimalField, QuerySet
-from django.http import HttpRequest
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView, ListView, DetailView
 
@@ -24,6 +23,7 @@ from orders.cart import get_cart
 from orders.models import Order, OrderItem
 from products.models import Product, Category
 from reviews.services import user_bought_product, user_already_reviewed
+
 
 @method_decorator(staff_member_required, name='dispatch')
 class AdminDashboardView(TemplateView):
@@ -74,7 +74,6 @@ class AdminDashboardView(TemplateView):
                 )
             )
         )['total'] or Decimal('0.00')
-
 
         # Number of orders by status
         orders_count = Order.objects.values('status').annotate(
@@ -131,6 +130,7 @@ class ProductListView(ListView):
 
     Displays paginated list of active products with support for:
     - Category filtering (multiple categories)
+    - Price range filtering (min/max)
     - Price and rating sorting
     - Full-text search in name and description
 
@@ -141,7 +141,7 @@ class ProductListView(ListView):
         paginate_by: Number of products per page.
 
     Examples:
-        GET /products/?categories=malt,hops&sorting=-price&q=citra
+        GET /products/?categories=malt,hops&sorting=-price&q=citra&price_min=10&price_max=50
     """
     model = Product
     template_name = 'products/product-list.html'
@@ -150,7 +150,7 @@ class ProductListView(ListView):
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         """
-        Add categories and sorting options to template context.
+        Add categories, sorting options, and price range to template context.
 
         Args:
             **kwargs: Additional keyword arguments.
@@ -160,6 +160,8 @@ class ProductListView(ListView):
                 - categories: List of all categories
                 - sorting_data: Available sorting options
                 - checked_categories: Currently selected categories
+                - price_min: Current minimum price filter value
+                - price_max: Current maximum price filter value
         """
         context = super().get_context_data(**kwargs)
         context['categories'] = Category.objects.all().values('name', 'slug')
@@ -172,6 +174,9 @@ class ProductListView(ListView):
         checked_categories = self.request.GET.get('categories', '')
         context['checked_categories'] = checked_categories.split(',') if checked_categories else []
         context['sorting_data'] = sorting_data
+        context['price_min'] = self.request.GET.get('price_min', '')
+        context['price_max'] = self.request.GET.get('price_max', '')
+
         return context
 
     def get_queryset(self) -> QuerySet[Product]:
@@ -181,19 +186,35 @@ class ProductListView(ListView):
         Applies filters in order:
         1. Only active products
         2. Category filter (if specified)
-        3. Sorting (if valid)
-        4. Search query (if specified)
+        3. Price range filter (if specified)
+        4. Sorting (if valid)
+        5. Search query (if specified)
 
         Returns:
             QuerySet[Product]: Filtered product queryset.
         """
-        queryset = Product.objects.filter(is_active= True)
+        queryset = Product.objects.filter(is_active=True)
 
         # Category filter
         categories = self.request.GET.get('categories')
         categories = categories.split(',') if categories else []
         if categories:
-            queryset = queryset.filter(category__slug__in= categories)
+            queryset = queryset.filter(category__slug__in=categories)
+
+        # Price range filter
+        price_min = self.request.GET.get('price_min')
+        if price_min:
+            try:
+                queryset = queryset.filter(price__gte=Decimal(price_min))
+            except InvalidOperation:
+                pass  # Ignore invalid price values
+
+        price_max = self.request.GET.get('price_max')
+        if price_max:
+            try:
+                queryset = queryset.filter(price__lte=Decimal(price_max))
+            except InvalidOperation:
+                pass  # Ignore invalid price values
 
         # Sorting
         sorting = self.request.GET.get('sorting', '-created_at')
@@ -203,7 +224,7 @@ class ProductListView(ListView):
         # Search
         q = self.request.GET.get('q')
         if q:
-            queryset = queryset.filter(Q(name__icontains= q) | Q(description__icontains= q))
+            queryset = queryset.filter(Q(name__icontains=q) | Q(description__icontains=q))
 
         return queryset
 

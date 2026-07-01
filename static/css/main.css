@@ -2614,3 +2614,192 @@ body.user-logged-in .header__user-actions {
     font-size: 0.9rem;
     color: var(--black-main);
 }
+
+/* ==========================================================================
+   Checkout Success Page Styles
+   ========================================================================== */
+
+/* Success page container spacing */
+.checkout-success-container {
+    margin-top: 3rem;
+    margin-bottom: 3rem;
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+}
+
+/* Success icon wrapper */
+.success-icon-wrapper {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background-color: rgba(25, 135, 84, 0.1);
+    margin-bottom: 2rem;
+}
+
+/* Success icon SVG */
+.success-icon-wrapper svg {
+    width: 60px;
+    height: 60px;
+}
+
+/* Success card */
+.success-card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+/* Success card body spacing */
+.success-card-body {
+    padding: 3rem;
+}
+
+/* Order details box */
+.order-details-box {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+/* Order detail item */
+.order-detail-item {
+    margin-bottom: 1rem;
+}
+
+/* Order detail label */
+.order-detail-label {
+    display: block;
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+}
+
+/* Order detail value */
+.order-detail-value {
+    font-weight: 600;
+}
+
+/* Order total value */
+.order-detail-value.total {
+    font-size: 1.25rem;
+}
+
+/* Action buttons spacing */
+.success-actions {
+    margin-top: 2rem;
+}
+
+/* Action buttons padding */
+.success-actions .btn {
+    padding-left: 2rem;
+    padding-right: 2rem;
+}
+
+/* Email notification text */
+.email-notification {
+    color: #6c757d;
+    margin-bottom: 2rem;
+}
+
+/* Email address highlight */
+.email-notification strong {
+    color: #212529;
+}
+
+/* ==========================================================================
+   Price Filter Styles
+   ========================================================================== */
+
+/* Filter section container */
+.filter-section {
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 0.375rem;
+}
+
+/* Filter section title */
+.filter-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 1rem;
+}
+
+/* Price filter container */
+.price-filter {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* Price inputs row */
+.price-inputs {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.75rem;
+}
+
+/* Price input group */
+.price-input-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+/* Price input label */
+.price-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+/* Price input field */
+.price-input {
+    padding: 0.5rem;
+    font-size: 0.9rem;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    transition: border-color 0.15s ease-in-out;
+}
+
+.price-input:focus {
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Remove number input arrows for cleaner look */
+.price-input::-webkit-outer-spin-button,
+.price-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.price-input[type=number] {
+    -moz-appearance: textfield;
+}
+
+/* Separator between inputs */
+.price-separator {
+    color: #6c757d;
+    font-size: 1.25rem;
+    padding-bottom: 0.5rem;
+    line-height: 1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+    .price-inputs {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .price-separator {
+        display: none;
+    }
+}

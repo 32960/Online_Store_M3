@@ -9,10 +9,9 @@ This module defines:
 Products support dynamic pricing units and JSON-based technical specifications
 for flexible product information storage.
 """
-from typing import Any
-
 from django.db import models
 from django.urls import reverse
+
 
 class JournalizedModel(models.Model):
     """

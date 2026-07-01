@@ -16,6 +16,7 @@
 - [Установка и запуск](#-установка-и-запуск)
 - [Переменные окружения](#-переменные-окружения)
 - [API документация](#-api-документация)
+- [Корзина и сессии](#-api-документация)
 - [Примеры запросов](#-примеры-запросов)
 - [Тестирование и линтеры](#-тестирование-и-линтеры)
 - [Чек-лист реализации](#-чек-лист-реализации)
@@ -25,6 +26,7 @@
 ### 🛒 Каталог товаров
 - Список товаров с пагинацией (6 товаров на страницу)
 - Фильтрация по категориям (множественный выбор)
+- Фильтрация по диапазону цен (от/до)
 - Поиск по названию и описанию
 - Сортировка по цене, рейтингу, дате добавления
 - Детальная страница товара с техническими характеристиками
@@ -37,6 +39,7 @@
 - Оформление заказа с автозаполнением из последнего адреса
 - Email-уведомления пользователю и администратору
 - Автоматическое сохранение адреса после заказа
+- Страница успешного заказа с деталями
 
 ### 👤 Личный кабинет
 - Регистрация с автоматическим входом
@@ -88,125 +91,77 @@
 ### Инструменты разработки
 - **mypy 1.17** — статическая типизация
 - **django-stubs 5.2** — type hints для Django
+- **pytest 9.0** — тестирование
+- **pytest-django 4.12** — интеграция pytest с Django
 - **python-dotenv 1.1** — переменные окружения
 
 ## 📁 Структура проекта
 
 
+```
+
 Online_Store_M3/
-
-├── config/ # Настройки проекта
-
-│ ├── settings.py # Основные настройки
-
-│ └── wsgi.py # WSGI конфигурация
-
+├── config/                  # Настройки проекта
+│   ├── settings.py         # Основные настройки
+│   ├── urls.py             # Корневой URLconf
+│   └── wsgi.py             # WSGI конфигурация
 │
-
-├── api/ # REST API приложение
-
-│ ├── views.py # API viewsets
-
-│ ├── serializers.py # DRF serializers
-
-│ └── urls.py # API endpoints
-
+├── api/                     # REST API приложение
+│   ├── views.py            # API viewsets
+│   ├── serializers.py      # DRF serializers
+│   └── urls.py             # API endpoints
 │
-
-├── products/ # Каталог товаров
-
-│ ├── models.py # Product, Category
-
-│ ├── views.py # ProductListView, ProductDetailView
-
-│ ├── admin.py # Админ-панель
-
-│ ├── services.py # Пересчёт рейтинга
-
-│ └── signals.py # Автоматическое обновление рейтинга
-
+├── products/                # Каталог товаров
+│   ├── models.py           # Product, Category
+│   ├── views.py            # ProductListView, ProductDetailView
+│   ├── admin.py            # Админ-панель
+│   ├── services.py         # Пересчёт рейтинга
+│   └── signals.py          # Автоматическое обновление рейтинга
 │
-
-├── orders/ # Заказы и корзина
-
-│ ├── models.py # Order, OrderItem
-
-│ ├── views.py # CheckoutView, cart views
-
-│ ├── cart.py # Логика корзины (сессии)
-
-│ └── forms.py # CheckoutForm
-
+├── orders/                  # Заказы и корзина
+│   ├── models.py           # Order, OrderItem
+│   ├── views.py            # CheckoutView, cart views
+│   ├── cart.py             # Логика корзины (сессии)
+│   └── forms.py            # CheckoutForm
 │
-
-├── users/ # Пользователи и адреса
-
-│ ├── models.py # User (кастомный), Address
-
-│ ├── views.py # Регистрация, вход, кабинет
-
-│ ├── forms.py # Формы аутентификации
-
-│ └── admin.py # Админ-панель пользователей
-
+├── users/                   # Пользователи и адреса
+│   ├── models.py           # User (кастомный), Address
+│   ├── views.py            # Регистрация, вход, кабинет
+│   ├── forms.py            # Формы аутентификации
+│   └── admin.py            # Админ-панель пользователей
 │
-
-├── reviews/ # Отзывы и рейтинги
-
-│ ├── models.py # Review
-
-│ ├── views.py # ReviewCreateView
-
-│ ├── services.py # Проверка прав на отзыв
-
-│ └── admin.py # Админ-панель отзывов
-
+├── reviews/                 # Отзывы и рейтинги
+│   ├── models.py           # Review
+│   ├── views.py            # ReviewCreateView
+│   ├── services.py         # Проверка прав на отзыв
+│   └── admin.py            # Админ-панель отзывов
 │
-
-├── static/ # Статические файлы
-
-│ ├── css/main.css # Основные стили
-
-│ ├── js/main.js # JavaScript логика
-
-│ └── images/ # Изображения
-
+├── static/                  # Статические файлы
+│   ├── css/main.css        # Основные стили
+│   ├── js/main.js          # JavaScript логика
+│   └── images/             # Изображения
 │
-
-├── templates/ # HTML шаблоны
-
-│ ├── base.html # Базовый шаблон
-
-│ ├── products/ # Шаблоны товаров
-
-│ ├── orders/ # Шаблоны заказов
-
-│ ├── users/ # Шаблоны пользователей
-
-│ └── reviews/ # Шаблоны отзывов
-
+├── templates/               # HTML шаблоны
+│   ├── base.html           # Базовый шаблон
+│   ├── products/           # Шаблоны товаров
+│   ├── orders/             # Шаблоны заказов
+│   ├── users/              # Шаблоны пользователей
+│   └── reviews/            # Шаблоны отзывов
 │
-
-├── media/ # Загруженные файлы
-
-│ └── product_images/ # Изображения товаров
-
+├── media/                   # Загруженные файлы
+│   └── product_images/     # Изображения товаров
 │
-
-├── manage.py # Django management script
-
-├── pyproject.toml # Зависимости проекта
-
-├── mypy.ini # Конфигурация mypy
-
-├── docker-compose.yml # Docker Compose (PostgreSQL)
-
-├── .env # Переменные окружения (не в git)
-
-├── .env.example # Пример переменных окружения
-
-└── README.md # Этот файл
-
+├── manage.py               # Django management script
+├── pyproject.toml          # Зависимости проекта
+├── mypy.ini                # Конфигурация mypy
+├── pytest.ini              # Конфигурация pytest
+├── conftest.py             # Общие фикстуры для тестов
+├── docker-compose.yml      # Docker Compose (PostgreSQL)
+├── Dockerfile              # Docker образ для приложения
+├── .env                    # Переменные окружения (не в git)
+├── .env.example            # Пример переменных окружения
+└── README.md               # Этот файл
+```
 
 ## 🚀 Установка и запуск
 
@@ -371,6 +326,137 @@ SIMPLE_JWT_REFRESH_TOKEN_LIFETIME=1440
 - **ReDoc:** `/api/redoc/` — альтернативный UI
 - **OpenAPI схема:** `/api/schema/` — YAML/JSON схема
 
+## 🛒 Корзина и сессии
+
+### Как работает корзина
+
+Корзина в проекте использует **сессионное хранилище Django** как для web-интерфейса, так и для REST API. Это означает, что корзина привязана к сессии пользователя, а не к его аккаунту.
+
+### Web-интерфейс
+В web-интерфейсе корзина работает через стандартные Django сессии:
+1. **Добавление товара:** При добавлении товара в корзину, информация сохраняется в `request.session['cart']`
+2. **Структура данных:**
+```python
+{
+    "1": {"quantity": 2, "price": "14.99"},
+    "3": {"quantity": 1, "price": "12.99"}
+}
+```
+3. **Автоматическое обновление:** При изменении количества или удалении товара, сессия обновляется
+4. **Оформление заказа:** При checkout корзина очищается после успешного создания заказа
+
+### REST API
+
+#### В REST API корзина также использует сессии, но с важными особенностями:
+#### **Аутентификация через сессии**
+#### Для работы с корзиной через API необходимо использовать **session-based аутентификацию:**
+```bash
+# 1. Получите CSRF токен и session cookie
+curl -c cookies.txt -b cookies.txt http://127.0.0.1:8000/api/cart/
+
+# 2. Добавьте товар в корзину
+curl -X POST http://127.0.0.1:8000/api/cart/ \
+  -H "Content-Type: application/json" \
+  -H "X-CSRFToken: YOUR_CSRF_TOKEN" \
+  -b cookies.txt \
+  -d '{
+    "product": 1,
+    "quantity": 2
+  }'
+
+# 3. Получите содержимое корзины
+curl -b cookies.txt http://127.0.0.1:8000/api/cart/
+```
+
+#### **Почему не JWT для корзины?**
+
+**Причина:** Корзина должна работать для **неаутентифицированных пользователей**. Если бы корзина была привязана к JWT токену, пользователи не могли бы добавлять товары до регистрации/входа.
+
+#### **Решение:**
+
+#### **Примеры запросов**
+
+#### **Добавить товар в корзину:**
+```bash
+# 1. Получите CSRF токен и session cookie
+curl -X POST http://127.0.0.1:8000/api/cart/ \
+  -H "Content-Type: application/json" \
+  -H "X-CSRFToken: YOUR_CSRF_TOKEN" \
+  -b cookies.txt \
+  -d '{
+    "product": 1,
+    "quantity": 2
+  }'
+```
+
+#### **Обновить количество:**
+```bash
+curl -X PATCH http://127.0.0.1:8000/api/cart/ \
+  -H "Content-Type: application/json" \
+  -H "X-CSRFToken: YOUR_CSRF_TOKEN" \
+  -b cookies.txt \
+  -d '{
+    "product": 1,
+    "quantity": 5
+  }'
+```
+
+#### **Удалить товар из корзины:**
+```bash
+curl -X DELETE http://127.0.0.1:8000/api/cart/ \
+  -H "Content-Type: application/json" \
+  -H "X-CSRFToken: YOUR_CSRF_TOKEN" \
+  -b cookies.txt \
+  -d '{
+    "product": 1
+  }'
+```
+
+#### **Очистить корзину:**
+```bash
+curl -X DELETE http://127.0.0.1:8000/api/cart/clear/ \
+  -H "X-CSRFToken: YOUR_CSRF_TOKEN" \
+  -b cookies.txt
+```
+
+#### **Получить содержимое корзины:**
+```bash
+curl -b cookies.txt http://127.0.0.1:8000/api/cart/
+
+# Ответ:
+{
+  "items": [
+    {
+      "product": {
+        "id": 1,
+        "name": "Citra Hops",
+        "price": "14.99",
+        "image": "/media/product_images/citra.jpg"
+      },
+      "quantity": 2,
+      "total": "29.98"
+    }
+  ],
+  "total_price": "29.98",
+  "total_items": 2
+}
+```
+
+### **Ограничения**
+1. **Сессия истекает:** Если сессия истекает (по умолчанию 2 недели), корзина очищается
+2. **Один браузер:** Корзина привязана к браузеру/устройству. На другом устройстве корзина будет пустой
+3. **CSRF защита:** Все POST/PATCH/DELETE запросы требуют CSRF токен
+4. **Нет синхронизации:** Если пользователь добавляет товары на разных устройствах, корзины не синхронизируются
+
+### Альтернативный подход (не реализован)
+Для production-проекта можно реализовать:
+
+- **Гибридный подход:** Корзина в localStorage + синхронизация с сервером при входе 
+- **База данных:** Корзина в localStorage + синхронизация с сервером при входе 
+- **WebSocket:** Real-time синхронизация корзины между устройствами 
+
+Но для учебного проекта сессионный подход полностью покрывает требования.
+
 ## 💡 Примеры запросов
 
 ### Регистрация
@@ -441,13 +527,23 @@ curl "http://127.0.0.1:8000/api/products/?category__slug=hops&ordering=-price&se
 python manage.py test
 ```
 
+Ожидаемый результат:
+```
+105 passed in XX.XX s
+```
+
+### Запуск с покрытием
+```bash
+pytest --cov=. --cov-report=html
+```
+
 ### Проверка типизации (mypy)
 ```bash
 mypy .
 ```
 
 ##### Ожидаемый результат:
-```bash
+```
 Success: no issues found in 41 source files
 ```
 

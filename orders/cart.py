@@ -44,6 +44,7 @@ def get_cart(request: HttpRequest) -> dict[str, dict[str, str | int]]:
     cart = request.session.setdefault(CART_SESSION_KEY, {})
     return cast(dict[str, dict[str, str | int]], cart)
 
+
 def set_quantity(request: HttpRequest, product: Product, quantity: int = 1) -> tuple[bool, str]:
     """
     Set product quantity in cart.
@@ -73,7 +74,7 @@ def set_quantity(request: HttpRequest, product: Product, quantity: int = 1) -> t
     if quantity < 1:
         remove_from_cart(request, product)
         return True, f'"{product.name}" removed from cart.'
-    cart[str(product.id)] = {'price': str(product.price), 'quantity': quantity,}
+    cart[str(product.id)] = {'price': str(product.price), 'quantity': quantity, }
 
     request.session.modified = True
     return True, f'"{product.name}" added to cart.'

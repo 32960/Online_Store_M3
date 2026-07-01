@@ -5,13 +5,12 @@ This module provides admin configuration for:
 - Review management with bulk delete action
 - Filtering and searching reviews
 """
-from typing import Any
-
 from django.contrib import admin
 from django.db.models import QuerySet
 from django.http import HttpRequest
 
 from reviews.models import Review
+
 
 @admin.action(description='Delete selected reviews')
 def delete_reviews(

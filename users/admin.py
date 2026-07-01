@@ -8,5 +8,8 @@ class UserAdmin(admin.ModelAdmin):
     search_fields = ('username', 'email', 'first_name', 'last_name')
     readonly_fields = ('created_at', 'updated_at')
 
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
     class Meta:
         model = get_user_model()

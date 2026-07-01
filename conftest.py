@@ -10,7 +10,6 @@ from PIL import Image
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from django.contrib.auth import get_user_model
-from django.test import Client
 
 from products.models import Product, Category
 from orders.models import Order, OrderItem
@@ -80,6 +79,7 @@ def authenticated_client(client, user):
     client.login(username='test@example.com', password='testpass123')
     return client
 
+
 @pytest.fixture
 def admin_client(client, admin_user):
     """Return a client authenticated as admin."""
@@ -108,17 +108,6 @@ def another_category(db):
         slug='malt',
     )
 
-def create_test_image():
-    """Create a test image file."""
-    image = Image.new('RGB', (100, 100), color='red')
-    image_file = io.BytesIO()
-    image.save(image_file, 'jpeg')
-    image_file.seek(0)
-    return SimpleUploadedFile(
-        name='test.jpg',
-        content=image_file.read(),
-        content_type='image/jpeg'
-    )
 
 @pytest.fixture
 def product(db, category):
@@ -134,6 +123,7 @@ def product(db, category):
         image=create_test_image(),
     )
 
+
 @pytest.fixture
 def another_product(db, category):
     """Create another test product with image."""
@@ -148,6 +138,7 @@ def another_product(db, category):
         image=create_test_image(),
     )
 
+
 @pytest.fixture
 def inactive_product(db, category):
     """Create an inactive product with image."""
@@ -161,6 +152,7 @@ def inactive_product(db, category):
         is_active=False,
         image=create_test_image(),
     )
+
 
 @pytest.fixture
 def low_stock_product(db, category):

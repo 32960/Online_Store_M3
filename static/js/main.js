@@ -16,20 +16,67 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        // 2. Filter Logic (Keywords and Checkboxes)
+//        // 2. Filter Logic (Keywords and Checkboxes)
+//        const checkboxes = document.querySelectorAll('.checkbox-group input[type="checkbox"]');
+//        const filterButton = document.querySelector('#filter-button');
+//
+//        if (checkboxes.length > 0 && filterButton) {
+//            filterButton.addEventListener('click', function() {
+//                let checked = [];
+//                checkboxes.forEach(checkbox => {
+//                    if (checkbox.checked) {
+//                        checked.push(checkbox.dataset.keyword);
+//                    }
+//                });
+//                const url = new URLSearchParams(window.location.search);
+//                url.set('categories', checked.join(','));
+//                window.location.search = url.toString();
+//            });
+//        }
+
+        // 2. Filter Logic (Categories + Price Range)
         const checkboxes = document.querySelectorAll('.checkbox-group input[type="checkbox"]');
         const filterButton = document.querySelector('#filter-button');
+        const priceMinInput = document.getElementById('price_min');
+        const priceMaxInput = document.getElementById('price_max');
 
-        if (checkboxes.length > 0 && filterButton) {
+        if (filterButton) {
             filterButton.addEventListener('click', function() {
-                let checked = [];
+                // Collect checked categories
+                let checkedCategories = [];
                 checkboxes.forEach(checkbox => {
                     if (checkbox.checked) {
-                        checked.push(checkbox.dataset.keyword);
+                        checkedCategories.push(checkbox.dataset.keyword);
                     }
                 });
+
+                // Build URL with all filters
                 const url = new URLSearchParams(window.location.search);
-                url.set('categories', checked.join(','));
+
+                // Categories
+                if (checkedCategories.length > 0) {
+                    url.set('categories', checkedCategories.join(','));
+                } else {
+                    url.delete('categories');
+                }
+
+                // Price range
+                const priceMin = priceMinInput ? priceMinInput.value.trim() : '';
+                const priceMax = priceMaxInput ? priceMaxInput.value.trim() : '';
+
+                if (priceMin) {
+                    url.set('price_min', priceMin);
+                } else {
+                    url.delete('price_min');
+                }
+
+                if (priceMax) {
+                    url.set('price_max', priceMax);
+                } else {
+                    url.delete('price_max');
+                }
+
+                // Navigate to filtered URL
                 window.location.search = url.toString();
             });
         }

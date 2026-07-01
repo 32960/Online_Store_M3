@@ -31,6 +31,7 @@ def deactivate_products(
     queryset.update(is_active=False)
     modeladmin.message_user(request, f'Products deactivated: {queryset.count()}')
 
+
 @admin.action(description='Make selected products active')
 def activate_products(
     modeladmin: admin.ModelAdmin,
@@ -47,6 +48,7 @@ def activate_products(
     """
     queryset.update(is_active=True)
     modeladmin.message_user(request, f'Activated products: {queryset.count()}')
+
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
@@ -86,6 +88,10 @@ class ProductAdmin(admin.ModelAdmin):
             'classes': ('collapse',),
         }),
     )
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):

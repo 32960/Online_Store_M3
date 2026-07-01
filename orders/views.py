@@ -15,11 +15,11 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
 from django.db import transaction
+from django.db.models import QuerySet
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import redirect, render
-from django.urls import reverse_lazy
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
-from django.views.generic import FormView
+from django.views.generic import FormView, DetailView
 
 from config.settings import DEFAULT_FROM_EMAIL, ADMIN_EMAIL
 from orders.cart import (
@@ -63,17 +63,13 @@ def add_to_cart_view(request: HttpRequest) -> HttpResponse:
         HttpResponse: Redirect to cart or product page.
 
     Note:
-        If product not found, shows error message.
+        If product not found, returns 404.
         If quantity < 1, removes product from cart.
     """
     product_id = request.POST.get('product_id')
     quantity = int(request.POST.get('quantity', 1))
 
-    try:
-        product = Product.objects.get(id=product_id)
-    except Product.DoesNotExist:
-        messages.error(request, 'Product not found')
-        return redirect('orders:cart')
+    product = get_object_or_404(Product, id=product_id)
 
     success, message = set_quantity(request, product, quantity)
     if success:
@@ -99,14 +95,10 @@ def remove_from_cart_view(request: HttpRequest) -> HttpResponse:
         HttpResponse: Redirect to cart page.
 
     Note:
-        If product not found, shows error message.
+        If product not found, returns 404.
     """
     product_id = request.POST.get('product_id')
-    try:
-        product = Product.objects.get(id=product_id)
-    except Product.DoesNotExist:
-        messages.error(request, 'Product not found')
-        return redirect('orders:cart')
+    product = get_object_or_404(Product, id=product_id)
 
     remove_from_cart(request, product)
     messages.success(request, f'"{product.name}" removed from cart.')
@@ -150,7 +142,6 @@ class CheckoutView(LoginRequiredMixin, FormView):
     """
     template_name = 'orders/checkout.html'
     form_class = CheckoutForm
-    success_url = reverse_lazy('orders:cart')
 
     def get_initial(self) -> dict[str, Any]:
         """
@@ -202,15 +193,20 @@ class CheckoutView(LoginRequiredMixin, FormView):
 
     def form_valid(self, form: CheckoutForm) -> HttpResponse:
         """
-        Handle valid form submission.
+        Handle valid checkout form submission.
 
-        Creates order, saves address, clears cart, and sends emails.
+        Creates order, saves address, clears cart, sends emails,
+        and redirects to success page.
 
         Args:
             form: Valid checkout form instance.
 
         Returns:
-            HttpResponse: Redirect to success URL.
+            HttpResponse: Redirect to checkout success page.
+
+        Note:
+            If order creation fails, shows error message and redirects
+            back to checkout page.
         """
         try:
             order = self.create_order(form)
@@ -229,7 +225,7 @@ class CheckoutView(LoginRequiredMixin, FormView):
         clear_cart(self.request)
         self.send_emails(order)
         messages.success(self.request, f'Order #{order.id} placed successfully!')
-        return super().form_valid(form)
+        return redirect('orders:checkout-success', pk=order.pk)
 
     def form_invalid(self, form: CheckoutForm) -> HttpResponse:
         """
@@ -259,7 +255,7 @@ class CheckoutView(LoginRequiredMixin, FormView):
             form: Valid checkout form instance.
 
         Returns:
-            Order: Created order instance.
+            Order: Created order instance with status 'paid'.
 
         Raises:
             ValueError: If cart is empty or stock is insufficient.
@@ -316,3 +312,33 @@ class CheckoutView(LoginRequiredMixin, FormView):
             [ADMIN_EMAIL],
             fail_silently=False,
         )
+
+
+class CheckoutSuccessView(LoginRequiredMixin, DetailView):
+    """
+    Success page displayed after successful checkout.
+
+    Shows order confirmation with details and provides navigation
+    to order details or continue shopping.
+
+    Attributes:
+        model: Order model class.
+        template_name: Path to success page template.
+        context_object_name: Variable name for order in template.
+
+    Note:
+        Only accessible to authenticated users.
+        Users can only view their own orders.
+    """
+    model = Order
+    template_name = 'orders/checkout-success.html'
+    context_object_name = 'order'
+
+    def get_queryset(self) -> QuerySet[Order]:
+        """
+        Return orders belonging to the authenticated user.
+
+        Returns:
+            QuerySet[Order]: Filtered queryset of user's orders.
+        """
+        return Order.objects.filter(user=self.request.user)

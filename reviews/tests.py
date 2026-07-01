@@ -17,7 +17,6 @@ from reviews.services import (
     user_already_reviewed,
     user_can_review,
 )
-from orders.models import Order, OrderItem
 
 User = get_user_model()
 
@@ -107,6 +106,7 @@ class TestReviewServices:
         """Test user_can_review returns False when not bought."""
         can_review, error = user_can_review(user, product)
         assert can_review is False
+        assert error is not None
         assert 'purchased' in error.lower()
 
     def test_user_can_review_false_already_reviewed(self, user, product, order, review):
@@ -115,6 +115,7 @@ class TestReviewServices:
         order.save()
         can_review, error = user_can_review(user, product)
         assert can_review is False
+        assert error is not None
         assert 'already reviewed' in error.lower()
 
 

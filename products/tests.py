@@ -16,11 +16,14 @@ from products.models import Product, Category
 from products.services import recalculate_product_rating
 from reviews.models import Review
 from conftest import create_test_image
+from django.contrib.auth import get_user_model
 
+User = get_user_model()
 
 # =============================================================================
 # Model Tests
 # =============================================================================
+
 
 @pytest.mark.django_db
 class TestCategoryModel:
@@ -201,6 +204,56 @@ class TestProductListView:
         products = list(response.context['products'])
         assert products[0].price <= products[1].price
 
+    def test_product_list_filter_by_price_min(self, client, product, another_product):
+        """Test filtering by minimum price."""
+        response = client.get(reverse('products:product-list') + '?price_min=14')
+        products = list(response.context['products'])
+        assert product in products  # price=14.99
+        assert another_product not in products  # price=12.99
+
+    def test_product_list_filter_by_price_max(self, client, product, another_product):
+        """Test filtering by maximum price."""
+        response = client.get(reverse('products:product-list') + '?price_max=13')
+        products = list(response.context['products'])
+        assert another_product in products  # price=12.99
+        assert product not in products  # price=14.99
+
+    def test_product_list_filter_by_price_range(
+            self, client, product, another_product, low_stock_product
+    ):
+        """Test filtering by price range."""
+        response = client.get(
+            reverse('products:product-list') + '?price_min=13&price_max=16'
+        )
+        products = list(response.context['products'])
+        assert product in products  # price=14.99
+        assert another_product not in products  # price=12.99
+        assert low_stock_product not in products  # price=19.99
+
+    def test_product_list_filter_by_price_invalid(self, client, product, another_product):
+        """Test filtering with invalid price values doesn't crash."""
+        response = client.get(reverse('products:product-list') + '?price_min=abc')
+        # Should not crash, should return all products
+        assert response.status_code == 200
+        products = list(response.context['products'])
+        assert product in products
+        assert another_product in products
+
+    def test_product_list_filter_by_price_combined_with_category(
+            self, client, product, another_product, category, another_category
+    ):
+        """Test filtering by price combined with category."""
+        another_product.category = another_category
+        another_product.save()
+
+        response = client.get(
+            reverse('products:product-list')
+            + f'?categories={category.slug}&price_min=10&price_max=20'
+        )
+        products = list(response.context['products'])
+        assert product in products  # price=14.99, category=hops
+        assert another_product not in products  # different category
+
 
 @pytest.mark.django_db
 class TestProductDetailView:
@@ -240,8 +293,3 @@ class TestProductDetailView:
             reverse('products:product-detail', kwargs={'slug': product.slug})
         )
         assert review in response.context['recent_reviews']
-
-
-# Import User for test_recalculate_rating_rounding
-from django.contrib.auth import get_user_model
-User = get_user_model()

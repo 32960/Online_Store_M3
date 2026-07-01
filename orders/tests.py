@@ -12,15 +12,19 @@ from decimal import Decimal
 
 from django.urls import reverse
 
+from orders.models import Order
 from products.models import Product, Category
 from products.services import recalculate_product_rating
 from reviews.models import Review
 from conftest import create_test_image
+from django.contrib.auth import get_user_model
 
+User = get_user_model()
 
 # =============================================================================
 # Model Tests
 # =============================================================================
+
 
 @pytest.mark.django_db
 class TestCategoryModel:
@@ -168,7 +172,7 @@ class TestProductListView:
                 price=Decimal('10.00'),
                 category=category,
                 stock=10,
-                image=create_test_image(),  # ← ДОБАВЬ ЭТО
+                image=create_test_image(),
             )
         response = client.get(reverse('products:product-list'))
         assert len(response.context['products']) == 6
@@ -241,7 +245,132 @@ class TestProductDetailView:
         )
         assert review in response.context['recent_reviews']
 
+# =============================================================================
+# Checkout Success View Tests
+# =============================================================================
 
-# Import User for test_recalculate_rating_rounding
-from django.contrib.auth import get_user_model
-User = get_user_model()
+
+@pytest.mark.django_db
+class TestCheckoutSuccessView:
+    """Tests for checkout success view."""
+
+    def test_checkout_success_requires_login(self, client, order):
+        """Test checkout success page requires authentication."""
+        response = client.get(
+            reverse('orders:checkout-success', kwargs={'pk': order.pk})
+        )
+        assert response.status_code == 302
+        assert 'login' in response.url.lower()
+
+    def test_checkout_success_accessible(self, authenticated_client, order):
+        """Test checkout success page is accessible for authenticated users."""
+        response = authenticated_client.get(
+            reverse('orders:checkout-success', kwargs={'pk': order.pk})
+        )
+        assert response.status_code == 200
+        assert 'orders/checkout-success.html' in [t.name for t in response.templates]
+
+    def test_checkout_success_shows_order(self, authenticated_client, order):
+        """Test checkout success page shows order details."""
+        response = authenticated_client.get(
+            reverse('orders:checkout-success', kwargs={'pk': order.pk})
+        )
+        assert response.context['order'] == order
+        assert response.context['order'].total_price == order.total_price
+
+    def test_checkout_success_404_for_others_order(
+        self, authenticated_client, another_user, product
+    ):
+        """Test checkout success returns 404 for other user's order."""
+        other_order = Order.objects.create(
+            user=another_user,
+            full_name='Other User',
+            phone='+987654321',
+            city='Boston',
+            shipping_address='456 Oak Ave',
+            payment_method='debit',
+            status='paid',
+        )
+        response = authenticated_client.get(
+            reverse('orders:checkout-success', kwargs={'pk': other_order.pk})
+        )
+        assert response.status_code == 404
+
+# =============================================================================
+# Cart Views Tests
+# =============================================================================
+
+
+@pytest.mark.django_db
+class TestCartViews:
+    """Tests for cart views (add, remove, clear)."""
+
+    def test_cart_page_status_code(self, client):
+        """Test cart page returns 200."""
+        response = client.get(reverse('orders:cart'))
+        assert response.status_code == 200
+
+    def test_cart_page_template(self, client):
+        """Test correct template is used."""
+        response = client.get(reverse('orders:cart'))
+        assert 'orders/cart.html' in [t.name for t in response.templates]
+
+    def test_add_to_cart(self, client, product):
+        """Test adding product to cart."""
+        response = client.post(
+            reverse('orders:add_to_cart'),
+            {'product_id': product.id, 'quantity': 2}
+        )
+        assert response.status_code == 302
+        cart = client.session.get('cart', {})
+        assert str(product.id) in cart
+        assert cart[str(product.id)]['quantity'] == 2
+
+    def test_remove_from_cart(self, client, product):
+        """Test removing product from cart."""
+        # First add
+        client.post(
+            reverse('orders:add_to_cart'),
+            {'product_id': product.id, 'quantity': 2}
+        )
+        # Then remove
+        response = client.post(
+            reverse('orders:remove_from_cart'),
+            {'product_id': product.id}
+        )
+        assert response.status_code == 302
+        cart = client.session.get('cart', {})
+        assert str(product.id) not in cart
+
+    def test_clear_cart(self, client, product, another_product):
+        """Test clearing cart."""
+        # Add two products
+        client.post(
+            reverse('orders:add_to_cart'),
+            {'product_id': product.id, 'quantity': 2}
+        )
+        client.post(
+            reverse('orders:add_to_cart'),
+            {'product_id': another_product.id, 'quantity': 1}
+        )
+        # Clear cart
+        response = client.post(reverse('orders:clear_cart'))
+        assert response.status_code == 302
+        cart = client.session.get('cart', {})
+        assert cart == {}
+
+    def test_add_to_cart_nonexistent_product(self, client):
+        """Test adding nonexistent product returns 404."""
+        response = client.post(
+            reverse('orders:add_to_cart'),
+            {'product_id': 99999, 'quantity': 1}
+        )
+        assert response.status_code == 404
+
+    def test_remove_from_cart_nonexistent_product(self, client):
+        """Test removing nonexistent product returns 404."""
+        response = client.post(
+            reverse('orders:remove_from_cart'),
+            {'product_id': 99999}
+        )
+        assert response.status_code == 404

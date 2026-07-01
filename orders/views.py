@@ -268,7 +268,12 @@ class CheckoutView(LoginRequiredMixin, FormView):
         if not cart:
             raise ValueError('Your cart is empty.')
 
-        products = Product.objects.select_for_update().filter(id__in=cart.keys())
+        products = Product.objects.select_for_update().filter(
+            id__in=cart.keys(),
+            is_active=True
+        )
+        if len(products) != len(cart.keys()):
+            raise ValueError('Some products in your cart are no longer available.')
         for product in products:
             quantity = int(cart[str(product.id)]['quantity'])
             if product.stock < quantity:

@@ -206,7 +206,11 @@ class OrderSerializer(serializers.ModelSerializer):
                     quantities_by_product.get(product.id, 0) + item['quantity']
                 )
             product_ids = list(quantities_by_product.keys())
-            products = Product.objects.in_bulk(product_ids)
+            products = Product.objects.filter(id__in=product_ids, is_active=True).in_bulk()
+            if len(products) != len(product_ids):
+                raise serializers.ValidationError({
+                    'items': 'Some products are no longer available.'
+                })
             for product_id, quantity in quantities_by_product.items():
                 product = products[product_id]
                 if product.stock < quantity:

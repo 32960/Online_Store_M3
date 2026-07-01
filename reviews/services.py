@@ -8,8 +8,6 @@ This module provides utility functions for:
 
 These functions are used by views to enforce review permissions.
 """
-from typing import Any
-
 from django.contrib.auth.models import AbstractUser
 
 from orders.models import OrderItem
@@ -39,6 +37,7 @@ def user_bought_product(user: AbstractUser, product: Product) -> bool:
         product=product,
     ).exists()
 
+
 def user_already_reviewed(user: AbstractUser, product: Product) -> bool:
     """
     Check if user has already reviewed the product.
@@ -58,6 +57,7 @@ def user_already_reviewed(user: AbstractUser, product: Product) -> bool:
         product=product,
         user=user,
     ).exists()
+
 
 def user_can_review(
     user: AbstractUser,
